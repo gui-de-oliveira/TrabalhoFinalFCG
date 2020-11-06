@@ -24,7 +24,7 @@
 	<inttypes.h>
 	<stdint.h>
 
-1603713713 source:c:\trabalho final fcg\src\main.cpp
+1604631420 source:c:\trabalho final fcg\src\main.cpp
 	<cmath>
 	<cstdio>
 	<cstdlib>
@@ -39,13 +39,11 @@
 	<algorithm>
 	<glad/glad.h>
 	<GLFW/glfw3.h>
-	<glm/mat4x4.hpp>
-	<glm/vec4.hpp>
-	<glm/gtc/type_ptr.hpp>
-	<tiny_obj_loader.h>
 	<stb_image.h>
 	"utils.h"
 	"matrices.h"
+	"textrendering.h"
+	"modelrendering.h"
 
 1603713706 c:\trabalho final fcg\include\glfw\glfw3.h
 	<stddef.h>
@@ -925,7 +923,7 @@
 1603713706 source:c:\trabalho final fcg\src\stb_image.cpp
 	"stb_image.h"
 
-1603713706 source:c:\trabalho final fcg\src\textrendering.cpp
+1604628078 source:c:\trabalho final fcg\src\textrendering.cpp
 	<string>
 	<glad/glad.h>
 	<GLFW/glfw3.h>
@@ -940,4 +938,22 @@
 
 1603713706 source:c:\trabalho final fcg\src\tiny_obj_loader.cpp
 	"tiny_obj_loader.h"
+
+1604620540 c:\trabalho final fcg\src\textrendering.h
+
+1604630980 c:\trabalho final fcg\src\foobar.h
+	<glad/glad.h>
+	<GLFW/glfw3.h>
+	<glm/mat4x4.hpp>
+	<glm/vec4.hpp>
+	<glm/gtc/type_ptr.hpp>
+	<tiny_obj_loader.h>
+
+1604631302 c:\trabalho final fcg\src\modelrendering.h
+	<glad/glad.h>
+	<GLFW/glfw3.h>
+	<glm/mat4x4.hpp>
+	<glm/vec4.hpp>
+	<glm/gtc/type_ptr.hpp>
+	<tiny_obj_loader.h>
 
