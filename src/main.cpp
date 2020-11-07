@@ -51,7 +51,7 @@ void PopMatrix(glm::mat4& M);
 // Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
-void TextRendering_ShowEulerAngles(GLFWwindow* window);
+void TextRendering_PrintCameraStats(GLFWwindow* window);
 void TextRendering_ShowProjection(GLFWwindow* window);
 void TextRendering_ShowFramesPerSecond(GLFWwindow* window);
 
@@ -89,8 +89,8 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // usuário através do mouse (veja função CursorPosCallback()). A posição
 // efetiva da câmera é calculada dentro da função main(), dentro do loop de
 // renderização.
-float g_CameraDirectionTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
-float g_CameraDirectionPhi = 0.0f;   // Ângulo em relação ao eixo Y
+float g_CameraDirectionTheta = 0.35f; // Ângulo no plano ZX em relação ao eixo Z
+float g_CameraDirectionPhi = -0.05f;   // Ângulo em relação ao eixo Y
 
 glm::vec4 g_CameraPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 glm::vec4 g_CameraDirection = glm::vec4(
@@ -105,6 +105,8 @@ bool g_MovingForward = false;
 bool g_MovingBackward = false;
 bool g_MovingLeft = false;
 bool g_MovingRight = false;
+bool g_MovingUp = false;
+bool g_MovingDown = false;
 
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
@@ -208,6 +210,10 @@ int main(int argc, char* argv[])
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
+    ObjModel fortressModel("../../data/Forsaken Fortress Inside.obj");
+    ComputeNormals(&fortressModel);
+    BuildTrianglesAndAddToVirtualScene(&fortressModel);
+
     if ( argc > 1 )
     {
         ObjModel model(argv[1]);
@@ -244,11 +250,13 @@ int main(int argc, char* argv[])
         glUseProgram(program_id);
 
         // Movimentamos o personagem se alguma tecla estiver pressionada
-        float speed = 1.0f;
+        float speed = 50.0f;
         if(g_MovingForward) g_CameraPosition += speed * delta * g_CameraRelativeForward;
         if(g_MovingBackward) g_CameraPosition -= speed * delta * g_CameraRelativeForward;
         if(g_MovingLeft) g_CameraPosition += speed * delta * g_CameraRelativeLeft;
         if(g_MovingRight) g_CameraPosition -= speed * delta * g_CameraRelativeLeft;
+        if(g_MovingUp) g_CameraPosition += speed * delta * UP_VECTOR;
+        if(g_MovingDown) g_CameraPosition -= speed * delta * UP_VECTOR;
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -257,7 +265,7 @@ int main(int argc, char* argv[])
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
         float nearPlane = -0.1f;  // Posição do "near plane"
-        float farPlane  = -10.0f; // Posição do "far plane"
+        float farPlane  = -1000.0f; // Posição do "far plane"
         float fieldOfView = 3.141592 / 3.0f;
 
         glm::mat4 projection = Matrix_Perspective(fieldOfView, g_ScreenRatio, nearPlane, farPlane);
@@ -274,25 +282,89 @@ int main(int argc, char* argv[])
         #define BUNNY  1
         #define PLANE  2
 
-        // Desenhamos o modelo da esfera
-        model = Matrix_Translate(-1.0f,0.0f,0.0f)
-              * Matrix_Rotate_Z(0.6f)
-              * Matrix_Rotate_X(0.2f);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, SPHERE);
-        DrawVirtualObject("sphere");
-
-        // Desenhamos o modelo do coelho
-        model = Matrix_Translate(1.0f,0.0f,0.0f);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, BUNNY);
-        DrawVirtualObject("bunny");
-
-        // Desenhamos o plano do chão
-        model = Matrix_Translate(0.0f,-1.1f,0.0f);
+        // Desenhamos a fortaleza
+        model = Matrix_Translate(445.41, -90.66f, -16.00f)
+            * Matrix_Scale(0.1f, 0.1f, 0.1f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
-        DrawVirtualObject("plane");
+
+        DrawVirtualObject("mesh-10.001_meshId10_name.001");
+        DrawVirtualObject("mesh-7.001_meshId7_name.001");
+        DrawVirtualObject("mesh-6.004_meshId6_name.004");
+        DrawVirtualObject("mesh-5.004_meshId5_name.004");
+        DrawVirtualObject("mesh-8.002_meshId8_name.002");
+        DrawVirtualObject("mesh-8.003_meshId8_name.003");
+        DrawVirtualObject("mesh-5.002_meshId5_name.002");
+        DrawVirtualObject("mesh-6.002_meshId6_name.002");
+        DrawVirtualObject("mesh-9.002_meshId9_name.002");
+        DrawVirtualObject("mesh-10_meshId10_name");
+        DrawVirtualObject("mesh-7_meshId7_name");
+        DrawVirtualObject("mesh-12.003_meshId12_name.003");
+        DrawVirtualObject("mesh-2.002_meshId2_name.002");
+        DrawVirtualObject("mesh-7.004_meshId7_name.004");
+        DrawVirtualObject("mesh-6.001_meshId6_name.001");
+        DrawVirtualObject("mesh-1.002_meshId1_name.002");
+        DrawVirtualObject("mesh-3.004_meshId3_name.004");
+        DrawVirtualObject("mesh-2.004_meshId2_name.004");
+        DrawVirtualObject("mesh-8.001_meshId8_name.001");
+        DrawVirtualObject("mesh-1.004_meshId1_name.004");
+        DrawVirtualObject("mesh-4_meshId4_name");
+        DrawVirtualObject("mesh-0.007_meshId0_name.008");
+        DrawVirtualObject("mesh-1_meshId1_name");
+        DrawVirtualObject("mesh-4.004_meshId4_name.004");
+        DrawVirtualObject("mesh-7.002_meshId7_name.002");
+        DrawVirtualObject("mesh-0.002_meshId0_name.003");
+        DrawVirtualObject("mesh-3_meshId3_name");
+        DrawVirtualObject("mesh-9_meshId9_name");
+        DrawVirtualObject("mesh-0_meshId0_name");
+        DrawVirtualObject("mesh-13_meshId13_name");
+        DrawVirtualObject("mesh-12.001_meshId12_name.001");
+        DrawVirtualObject("mesh-5_meshId5_name");
+        DrawVirtualObject("mesh-4.002_meshId4_name.002");
+        DrawVirtualObject("mesh-3.005_meshId3_name.005");
+        DrawVirtualObject("mesh-3.001_meshId3_name.001");
+        DrawVirtualObject("mesh-0.009_meshId0_name.010");
+        DrawVirtualObject("mesh-2.001_meshId2_name.001");
+        DrawVirtualObject("mesh-10.003_meshId10_name.003");
+        DrawVirtualObject("mesh-11.002_meshId11_name.002");
+        DrawVirtualObject("mesh-6_meshId6_name");
+        DrawVirtualObject("mesh-8.004_meshId8_name.004");
+        DrawVirtualObject("mesh-4.001_meshId4_name.001");
+        DrawVirtualObject("mesh-2_meshId2_name");
+        DrawVirtualObject("mesh-11_meshId11_name");
+        DrawVirtualObject("mesh-13.002_meshId13_name.002");
+        DrawVirtualObject("mesh-9.003_meshId9_name.003");
+        DrawVirtualObject("mesh-9.004_meshId9_name.004");
+        DrawVirtualObject("mesh-10.002_meshId10_name.002");
+        DrawVirtualObject("mesh-3.003_meshId3_name.003");
+        DrawVirtualObject("mesh-0.001_meshId0_name.001");
+        DrawVirtualObject("mesh-1.001_meshId1_name.001");
+        DrawVirtualObject("mesh-12.002_meshId12_name.002");
+        DrawVirtualObject("mesh-2.005_meshId2_name.005");
+        DrawVirtualObject("mesh-7.003_meshId7_name.003");
+        DrawVirtualObject("mesh-5.003_meshId5_name.003");
+        DrawVirtualObject("mesh-13.003_meshId13_name.003");
+        DrawVirtualObject("mesh-1.003_meshId1_name.003");
+        DrawVirtualObject("mesh-11.004_meshId11_name.004");
+        DrawVirtualObject("mesh-4.003_meshId4_name.003");
+        DrawVirtualObject("mesh-14_meshId14_name");
+        DrawVirtualObject("mesh-9.001_meshId9_name.001");
+        DrawVirtualObject("mesh-11.003_meshId11_name.003");
+        DrawVirtualObject("mesh-13.001_meshId13_name.001");
+        DrawVirtualObject("mesh-10.004_meshId10_name.004");
+        DrawVirtualObject("mesh-0.008_meshId0_name.009");
+        DrawVirtualObject("mesh-0.003_meshId0_name.004");
+        DrawVirtualObject("mesh-0.005_meshId0_name.006");
+        DrawVirtualObject("mesh-2.003_meshId2_name.003");
+        DrawVirtualObject("mesh-0.004_meshId0_name.005");
+        DrawVirtualObject("mesh-1.005_meshId1_name.005");
+        DrawVirtualObject("mesh-8_meshId8_name");
+        DrawVirtualObject("mesh-12_meshId12_name");
+        DrawVirtualObject("mesh-0.006_meshId0_name.007");
+        DrawVirtualObject("mesh-11.001_meshId11_name.001");
+        DrawVirtualObject("mesh-3.002_meshId3_name.002");
+        DrawVirtualObject("mesh-6.003_meshId6_name.003");
+        DrawVirtualObject("mesh-5.001_meshId5_name.001");
 
         // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
         // passamos por todos os sistemas de coordenadas armazenados nas
@@ -303,7 +375,7 @@ int main(int argc, char* argv[])
 
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
-        TextRendering_ShowEulerAngles(window);
+        TextRendering_PrintCameraStats(window);
 
         // Imprimimos na informação sobre a matriz de projeção sendo utilizada.
         TextRendering_ShowProjection(window);
@@ -541,6 +613,8 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_S) g_MovingBackward = IsActionPressed(action);
     if (key == GLFW_KEY_A) g_MovingLeft = IsActionPressed(action);
     if (key == GLFW_KEY_D) g_MovingRight = IsActionPressed(action);
+    if (key == GLFW_KEY_Q) g_MovingUp = IsActionPressed(action);
+    if (key == GLFW_KEY_E) g_MovingDown = IsActionPressed(action);
 
     // Se o usuário apertar a tecla H, fazemos um "toggle" do texto informativo mostrado na tela.
     if (key == GLFW_KEY_H && action == GLFW_PRESS)
@@ -627,7 +701,7 @@ void TextRendering_ShowModelViewProjection(
 
 // Escrevemos na tela os ângulos de Euler definidos nas variáveis globais
 // g_AngleX, g_AngleY, e g_AngleZ.
-void TextRendering_ShowEulerAngles(GLFWwindow* window)
+void TextRendering_PrintCameraStats(GLFWwindow* window)
 {
     if ( !g_ShowInfoText )
         return;
@@ -635,9 +709,12 @@ void TextRendering_ShowEulerAngles(GLFWwindow* window)
     float pad = TextRendering_LineHeight(window);
 
     char buffer[80];
-    snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", g_CameraDirectionPhi, g_CameraDirectionTheta, g_AngleX);
+    snprintf(buffer, 80, "Camera Direction = Phi: (%.2f), Theta: (%.2f)\n", g_CameraDirectionPhi, g_CameraDirectionTheta);
+    TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+pad, 1.0f);
 
-    TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 1.0f);
+    snprintf(buffer, 80, "Camera position = X: (%.2f), Y: (%.2f), Z: (%.2f)\n", g_CameraPosition.x, g_CameraPosition.y, g_CameraPosition.z);
+    TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f, 1.0f);
+
 }
 
 // Escrevemos na tela qual matriz de projeção está sendo utilizada.

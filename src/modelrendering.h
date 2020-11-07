@@ -11,6 +11,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <tiny_obj_loader.h>
+#include <iostream>
+using namespace std;
 
 // Definimos uma estrutura que armazenará dados necessários para renderizar
 // cada objeto da cena virtual.
@@ -68,7 +70,7 @@ struct ObjModel
 
         if (!ret)
             throw std::runtime_error("Erro ao carregar modelo.");
-        
+
         printf("OK.\n");
     }
 };
@@ -174,6 +176,8 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
         theobject.bbox_max = bbox_max;
 
         g_VirtualScene[model->shapes[shape].name] = theobject;
+
+        cout << model->shapes[shape].name << endl;
     }
 
     GLuint VBO_model_coefficients_id;
@@ -537,7 +541,7 @@ GLuint CreateGpuProgram(GLuint vertex_shader_id, GLuint fragment_shader_id)
         fprintf(stderr, "%s", output.c_str());
     }
 
-    // Os "Shader Objects" podem ser marcados para deleção após serem linkados 
+    // Os "Shader Objects" podem ser marcados para deleção após serem linkados
     glDeleteShader(vertex_shader_id);
     glDeleteShader(fragment_shader_id);
 
@@ -592,6 +596,7 @@ void PrintObjModelInfo(ObjModel* model)
   printf("# of texcoords : %d\n", (int)(attrib.texcoords.size() / 2));
   printf("# of shapes    : %d\n", (int)shapes.size());
   printf("# of materials : %d\n", (int)materials.size());
+
 
   for (size_t v = 0; v < attrib.vertices.size() / 3; v++) {
     printf("  v[%ld] = (%f, %f, %f)\n", static_cast<long>(v),

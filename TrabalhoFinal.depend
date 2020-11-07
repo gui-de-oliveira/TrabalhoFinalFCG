@@ -24,7 +24,7 @@
 	<inttypes.h>
 	<stdint.h>
 
-1604634914 source:c:\trabalho final fcg\src\main.cpp
+1604722795 source:c:\trabalho final fcg\src\main.cpp
 	<cmath>
 	<cstdio>
 	<cstdlib>
@@ -949,11 +949,12 @@
 	<glm/gtc/type_ptr.hpp>
 	<tiny_obj_loader.h>
 
-1604631302 c:\trabalho final fcg\src\modelrendering.h
+1604722063 c:\trabalho final fcg\src\modelrendering.h
 	<glad/glad.h>
 	<GLFW/glfw3.h>
 	<glm/mat4x4.hpp>
 	<glm/vec4.hpp>
 	<glm/gtc/type_ptr.hpp>
 	<tiny_obj_loader.h>
+	<iostream>
 
