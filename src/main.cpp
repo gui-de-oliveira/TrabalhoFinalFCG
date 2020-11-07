@@ -62,7 +62,6 @@ void ErrorCallback(int error, const char* description);
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
-void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
@@ -92,14 +91,20 @@ bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mous
 // renderização.
 float g_CameraDirectionTheta = 0.0f; // Ângulo no plano ZX em relação ao eixo Z
 float g_CameraDirectionPhi = 0.0f;   // Ângulo em relação ao eixo Y
-float g_CameraDistance = 3.5f; // Distância da câmera para a origem
+
+glm::vec4 g_CameraPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+glm::vec4 g_CameraDirection = glm::vec4(
+    cos(g_CameraDirectionPhi) * sin(g_CameraDirectionTheta), 
+    sin(g_CameraDirectionPhi),
+    cos(g_CameraDirectionPhi) * cos(g_CameraDirectionTheta),
+    0.0f);
+glm::vec4 g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_CameraDirection);
+glm::vec4 g_CameraRelativeForward = g_CameraDirection;
 
 bool g_MovingForward = false;
 bool g_MovingBackward = false;
 bool g_MovingLeft = false;
 bool g_MovingRight = false;
-
-glm::vec4 g_CameraPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
@@ -157,10 +162,8 @@ int main(int argc, char* argv[])
     glfwSetKeyCallback(window, KeyCallback);
     // ... ou clicar os botões do mouse ...
     glfwSetMouseButtonCallback(window, MouseButtonCallback);
-    // ... ou movimentar o cursor do mouse em cima da janela ...
+    // ... ou movimentar o cursor do mouse em cima da janela
     glfwSetCursorPosCallback(window, CursorPosCallback);
-    // ... ou rolar a "rodinha" do mouse.
-    glfwSetScrollCallback(window, ScrollCallback);
 
     // Indicamos que as chamadas OpenGL deverão renderizar nesta janela
     glfwMakeContextCurrent(window);
@@ -228,49 +231,28 @@ int main(int argc, char* argv[])
     glm::mat4 the_model;
     glm::mat4 the_view;
 
+    float lastTime = glfwGetTime();
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
-        // Aqui executamos as operações de renderização
+        float delta = glfwGetTime() - lastTime;
+        lastTime = glfwGetTime();
 
-        // Definimos a cor do "fundo" do framebuffer como branco.  Tal cor é
-        // definida como coeficientes RGBA: Red, Green, Blue, Alpha; isto é:
-        // Vermelho, Verde, Azul, Alpha (valor de transparência).
-        // Conversaremos sobre sistemas de cores nas aulas de Modelos de Iluminação.
-        //
-        //           R     G     B     A
+        //Pintamos tudo de branco e reiniciamos o Z-BUFFER
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-
-        // "Pintamos" todos os pixels do framebuffer com a cor definida acima,
-        // e também resetamos todos os pixels do Z-buffer (depth buffer).
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-        // Pedimos para a GPU utilizar o programa de GPU criado acima (contendo
-        // os shaders de vértice e fragmentos).
         glUseProgram(program_id);
-        
-        glm::vec4 cameraDirection = glm::vec4(
-            cos(g_CameraDirectionPhi) * sin(g_CameraDirectionTheta), 
-            sin(g_CameraDirectionPhi),
-            cos(g_CameraDirectionPhi) * cos(g_CameraDirectionTheta),
-            0.0f);
 
-        const float PI = 3.141592;
-        float speed = 0.01f;
-        glm::vec4 relativeLeft = glm::vec4(
-            cos(g_CameraDirectionPhi) * sin(g_CameraDirectionTheta + PI/2.0f), 
-            sin(g_CameraDirectionPhi),
-            cos(g_CameraDirectionPhi) * cos(g_CameraDirectionTheta + PI/2.0f),
-            0.0f);
-
-        if(g_MovingForward) g_CameraPosition += speed * cameraDirection;
-        if(g_MovingBackward) g_CameraPosition -= speed * cameraDirection;
-        if(g_MovingLeft) g_CameraPosition += speed * relativeLeft;
-        if(g_MovingRight) g_CameraPosition -= speed * relativeLeft;
+        // Movimentamos o personagem se alguma tecla estiver pressionada
+        float speed = 1.0f;
+        if(g_MovingForward) g_CameraPosition += speed * delta * g_CameraRelativeForward;
+        if(g_MovingBackward) g_CameraPosition -= speed * delta * g_CameraRelativeForward;
+        if(g_MovingLeft) g_CameraPosition += speed * delta * g_CameraRelativeLeft;
+        if(g_MovingRight) g_CameraPosition -= speed * delta * g_CameraRelativeLeft;
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::mat4 view = Matrix_Camera_View(g_CameraPosition, cameraDirection, UP_VECTOR);
+        glm::mat4 view = Matrix_Camera_View(g_CameraPosition, g_CameraDirection, UP_VECTOR);
 
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
@@ -295,15 +277,13 @@ int main(int argc, char* argv[])
         // Desenhamos o modelo da esfera
         model = Matrix_Translate(-1.0f,0.0f,0.0f)
               * Matrix_Rotate_Z(0.6f)
-              * Matrix_Rotate_X(0.2f)
-              * Matrix_Rotate_Y(g_AngleY + (float)glfwGetTime() * 0.1f);
+              * Matrix_Rotate_X(0.2f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, SPHERE);
         DrawVirtualObject("sphere");
 
         // Desenhamos o modelo do coelho
-        model = Matrix_Translate(1.0f,0.0f,0.0f)
-              * Matrix_Rotate_X(g_AngleX + (float)glfwGetTime() * 0.1f);
+        model = Matrix_Translate(1.0f,0.0f,0.0f);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, BUNNY);
         DrawVirtualObject("bunny");
@@ -483,6 +463,20 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         if (g_CameraDirectionPhi < phimin)
             g_CameraDirectionPhi = phimin;
     
+        // Atualizamos a direção da câmera
+        g_CameraDirection = glm::vec4(
+            cos(g_CameraDirectionPhi) * sin(g_CameraDirectionTheta), 
+            sin(g_CameraDirectionPhi),
+            cos(g_CameraDirectionPhi) * cos(g_CameraDirectionTheta),
+            0.0f);
+
+        // Atualizamos as novas direções relativas
+        g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_CameraDirection);
+        g_CameraRelativeLeft /= norm(g_CameraRelativeLeft);
+
+        g_CameraRelativeForward = crossproduct(g_CameraRelativeLeft, UP_VECTOR);
+        g_CameraRelativeForward /= norm(g_CameraRelativeForward);
+
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
         g_LastCursorPosX = xpos;
@@ -520,23 +514,6 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         g_LastCursorPosX = xpos;
         g_LastCursorPosY = ypos;
     }
-}
-
-// Função callback chamada sempre que o usuário movimenta a "rodinha" do mouse.
-void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-{
-    // Atualizamos a distância da câmera para a origem utilizando a
-    // movimentação da "rodinha", simulando um ZOOM.
-    g_CameraDistance -= 0.1f*yoffset;
-
-    // Uma câmera look-at nunca pode estar exatamente "em cima" do ponto para
-    // onde ela está olhando, pois isto gera problemas de divisão por zero na
-    // definição do sistema de coordenadas da câmera. Isto é, a variável abaixo
-    // nunca pode ser zero. Versões anteriores deste código possuíam este bug,
-    // o qual foi detectado pelo aluno Vinicius Fraga (2017/2).
-    const float verysmallnumber = std::numeric_limits<float>::epsilon();
-    if (g_CameraDistance < verysmallnumber)
-        g_CameraDistance = verysmallnumber;
 }
 
 bool IsActionPressed(int action){
@@ -658,7 +635,7 @@ void TextRendering_ShowEulerAngles(GLFWwindow* window)
     float pad = TextRendering_LineHeight(window);
 
     char buffer[80];
-    snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", g_AngleZ, g_AngleY, g_AngleX);
+    snprintf(buffer, 80, "Euler Angles rotation matrix = Z(%.2f)*Y(%.2f)*X(%.2f)\n", g_CameraDirectionPhi, g_CameraDirectionTheta, g_AngleX);
 
     TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+2*pad/10, 1.0f);
 }
