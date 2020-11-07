@@ -63,7 +63,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 
-void DrawWorld(bool drawPlayer);
+void DrawWorld(bool drawPlayer, bool drawCamera);
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
@@ -222,6 +222,10 @@ int main(int argc, char* argv[])
     ComputeNormals(&linkModel);
     BuildTrianglesAndAddToVirtualScene(&linkModel);
 
+    ObjModel cameraModel("../../data/camera.obj");
+    ComputeNormals(&cameraModel);
+    BuildTrianglesAndAddToVirtualScene(&cameraModel);
+
     if ( argc > 1 )
     {
         ObjModel model(argv[1]);
@@ -291,7 +295,7 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
-        DrawWorld(false);
+        DrawWorld(false, true);
 
         glClear(GL_DEPTH_BUFFER_BIT);
         glViewport(0, 0, g_Width * 0.25, g_Height * 0.25);
@@ -310,7 +314,7 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
-        DrawWorld(true);
+        DrawWorld(true, false);
 
         glViewport(0, 0, g_Width, g_Height);
         
@@ -351,7 +355,7 @@ int main(int argc, char* argv[])
 #define BUNNY  1
 #define PLANE  2
 
-void DrawWorld(bool drawPlayer){
+void DrawWorld(bool drawPlayer, bool drawCamera){
     glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
     
     if (drawPlayer) {
@@ -366,6 +370,20 @@ void DrawWorld(bool drawPlayer){
         DrawVirtualObject("link_model_0");
     }
 
+    if (drawCamera) {
+
+         glm::vec4 position = glm::vec4(-100.76, 45.97, -21.94, 1.0f);
+        float phi = -0.55;
+        float theta = 1.70;
+        
+        model = Matrix_Translate(position.x + 6.0, position.y, position.z - 4.0)
+            * Matrix_Rotate_Y(theta)
+            * Matrix_Rotate_X(-phi * 0.5);
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        glUniform1i(object_id_uniform, PLANE);
+
+        DrawVirtualObject("camera_reference");
+    }
     // Desenhamos a fortaleza
     model = Matrix_Translate(445.41, -90.66f, -16.00f)
         * Matrix_Scale(0.1f, 0.1f, 0.1f);
