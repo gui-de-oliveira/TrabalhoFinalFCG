@@ -63,6 +63,8 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 
+void DrawWorld();
+
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 
 // Vetor "up" fixado para apontar para o "céu" (eito Y global)
@@ -73,6 +75,8 @@ std::stack<glm::mat4>  g_MatrixStack;
 
 // Razão de proporção da janela (largura/altura). Veja função FramebufferSizeCallback().
 float g_ScreenRatio = 1.0f;
+float g_Width = 800;
+float g_Height= 600;
 
 // Ângulos de Euler que controlam a rotação de um dos cubos da cena virtual
 float g_AngleX = 0.0f;
@@ -244,6 +248,13 @@ int main(int argc, char* argv[])
         float delta = glfwGetTime() - lastTime;
         lastTime = glfwGetTime();
 
+        // Indicamos que queremos renderizar em toda região do framebuffer. A
+        // função "glViewport" define o mapeamento das "normalized device
+        // coordinates" (NDC) para "pixel coordinates".  Essa é a operação de
+        // "Screen Mapping" ou "Viewport Mapping" vista em aula ({+ViewportMapping2+}).
+        glEnable(GL_SCISSOR_TEST);
+        glViewport(0, 0, g_Width, g_Height);
+
         //Pintamos tudo de branco e reiniciamos o Z-BUFFER
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -265,12 +276,10 @@ int main(int argc, char* argv[])
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
         float nearPlane = -0.1f;  // Posição do "near plane"
-        float farPlane  = -1000.0f; // Posição do "far plane"
+        float farPlane  = -500.0f; // Posição do "far plane"
         float fieldOfView = 3.141592 / 3.0f;
 
         glm::mat4 projection = Matrix_Perspective(fieldOfView, g_ScreenRatio, nearPlane, farPlane);
-
-        glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
 
         // Enviamos as matrizes "view" e "projection" para a placa de vídeo
         // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
@@ -278,101 +287,29 @@ int main(int argc, char* argv[])
         glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
-        #define SPHERE 0
-        #define BUNNY  1
-        #define PLANE  2
+        DrawWorld();
 
-        // Desenhamos a fortaleza
-        model = Matrix_Translate(445.41, -90.66f, -16.00f)
-            * Matrix_Scale(0.1f, 0.1f, 0.1f);
-        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glViewport(0, 0, g_Width * 0.25, g_Height * 0.25);
 
-        DrawVirtualObject("mesh-10.001_meshId10_name.001");
-        DrawVirtualObject("mesh-7.001_meshId7_name.001");
-        DrawVirtualObject("mesh-6.004_meshId6_name.004");
-        DrawVirtualObject("mesh-5.004_meshId5_name.004");
-        DrawVirtualObject("mesh-8.002_meshId8_name.002");
-        DrawVirtualObject("mesh-8.003_meshId8_name.003");
-        DrawVirtualObject("mesh-5.002_meshId5_name.002");
-        DrawVirtualObject("mesh-6.002_meshId6_name.002");
-        DrawVirtualObject("mesh-9.002_meshId9_name.002");
-        DrawVirtualObject("mesh-10_meshId10_name");
-        DrawVirtualObject("mesh-7_meshId7_name");
-        DrawVirtualObject("mesh-12.003_meshId12_name.003");
-        DrawVirtualObject("mesh-2.002_meshId2_name.002");
-        DrawVirtualObject("mesh-7.004_meshId7_name.004");
-        DrawVirtualObject("mesh-6.001_meshId6_name.001");
-        DrawVirtualObject("mesh-1.002_meshId1_name.002");
-        DrawVirtualObject("mesh-3.004_meshId3_name.004");
-        DrawVirtualObject("mesh-2.004_meshId2_name.004");
-        DrawVirtualObject("mesh-8.001_meshId8_name.001");
-        DrawVirtualObject("mesh-1.004_meshId1_name.004");
-        DrawVirtualObject("mesh-4_meshId4_name");
-        DrawVirtualObject("mesh-0.007_meshId0_name.008");
-        DrawVirtualObject("mesh-1_meshId1_name");
-        DrawVirtualObject("mesh-4.004_meshId4_name.004");
-        DrawVirtualObject("mesh-7.002_meshId7_name.002");
-        DrawVirtualObject("mesh-0.002_meshId0_name.003");
-        DrawVirtualObject("mesh-3_meshId3_name");
-        DrawVirtualObject("mesh-9_meshId9_name");
-        DrawVirtualObject("mesh-0_meshId0_name");
-        DrawVirtualObject("mesh-13_meshId13_name");
-        DrawVirtualObject("mesh-12.001_meshId12_name.001");
-        DrawVirtualObject("mesh-5_meshId5_name");
-        DrawVirtualObject("mesh-4.002_meshId4_name.002");
-        DrawVirtualObject("mesh-3.005_meshId3_name.005");
-        DrawVirtualObject("mesh-3.001_meshId3_name.001");
-        DrawVirtualObject("mesh-0.009_meshId0_name.010");
-        DrawVirtualObject("mesh-2.001_meshId2_name.001");
-        DrawVirtualObject("mesh-10.003_meshId10_name.003");
-        DrawVirtualObject("mesh-11.002_meshId11_name.002");
-        DrawVirtualObject("mesh-6_meshId6_name");
-        DrawVirtualObject("mesh-8.004_meshId8_name.004");
-        DrawVirtualObject("mesh-4.001_meshId4_name.001");
-        DrawVirtualObject("mesh-2_meshId2_name");
-        DrawVirtualObject("mesh-11_meshId11_name");
-        DrawVirtualObject("mesh-13.002_meshId13_name.002");
-        DrawVirtualObject("mesh-9.003_meshId9_name.003");
-        DrawVirtualObject("mesh-9.004_meshId9_name.004");
-        DrawVirtualObject("mesh-10.002_meshId10_name.002");
-        DrawVirtualObject("mesh-3.003_meshId3_name.003");
-        DrawVirtualObject("mesh-0.001_meshId0_name.001");
-        DrawVirtualObject("mesh-1.001_meshId1_name.001");
-        DrawVirtualObject("mesh-12.002_meshId12_name.002");
-        DrawVirtualObject("mesh-2.005_meshId2_name.005");
-        DrawVirtualObject("mesh-7.003_meshId7_name.003");
-        DrawVirtualObject("mesh-5.003_meshId5_name.003");
-        DrawVirtualObject("mesh-13.003_meshId13_name.003");
-        DrawVirtualObject("mesh-1.003_meshId1_name.003");
-        DrawVirtualObject("mesh-11.004_meshId11_name.004");
-        DrawVirtualObject("mesh-4.003_meshId4_name.003");
-        DrawVirtualObject("mesh-14_meshId14_name");
-        DrawVirtualObject("mesh-9.001_meshId9_name.001");
-        DrawVirtualObject("mesh-11.003_meshId11_name.003");
-        DrawVirtualObject("mesh-13.001_meshId13_name.001");
-        DrawVirtualObject("mesh-10.004_meshId10_name.004");
-        DrawVirtualObject("mesh-0.008_meshId0_name.009");
-        DrawVirtualObject("mesh-0.003_meshId0_name.004");
-        DrawVirtualObject("mesh-0.005_meshId0_name.006");
-        DrawVirtualObject("mesh-2.003_meshId2_name.003");
-        DrawVirtualObject("mesh-0.004_meshId0_name.005");
-        DrawVirtualObject("mesh-1.005_meshId1_name.005");
-        DrawVirtualObject("mesh-8_meshId8_name");
-        DrawVirtualObject("mesh-12_meshId12_name");
-        DrawVirtualObject("mesh-0.006_meshId0_name.007");
-        DrawVirtualObject("mesh-11.001_meshId11_name.001");
-        DrawVirtualObject("mesh-3.002_meshId3_name.002");
-        DrawVirtualObject("mesh-6.003_meshId6_name.003");
-        DrawVirtualObject("mesh-5.001_meshId5_name.001");
+        glm::vec4 position = glm::vec4(-100.76, 45.97, -21.94, 1.0f);
+        float phi = -0.55;
+        float theta = 1.70;
+        glm::vec4 direction = glm::vec4( 
+            cos(phi) * sin(theta), sin(phi), cos(phi) * cos(theta), 0.0f);
 
-        // Pegamos um vértice com coordenadas de modelo (0.5, 0.5, 0.5, 1) e o
-        // passamos por todos os sistemas de coordenadas armazenados nas
-        // matrizes the_model, the_view, e the_projection; e escrevemos na tela
-        // as matrizes e pontos resultantes dessas transformações.
-        //glm::vec4 p_model(0.5f, 0.5f, 0.5f, 1.0f);
-        //TextRendering_ShowModelViewProjection(window, projection, view, model, p_model);
+        view = Matrix_Camera_View(position, direction, UP_VECTOR);
 
+        // Enviamos as matrizes "view" e "projection" para a placa de vídeo
+        // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
+        // efetivamente aplicadas em todos os pontos.
+        glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
+        glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
+
+        DrawWorld();
+        
+        glViewport(0, 0, g_Width, g_Height);
+        
         // Imprimimos na tela os ângulos de Euler que controlam a rotação do
         // terceiro cubo.
         TextRendering_PrintCameraStats(window);
@@ -406,6 +343,98 @@ int main(int argc, char* argv[])
     return 0;
 }
 
+#define SPHERE 0
+#define BUNNY  1
+#define PLANE  2
+
+void DrawWorld(){
+    glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
+    
+    // Desenhamos a fortaleza
+    model = Matrix_Translate(445.41, -90.66f, -16.00f)
+        * Matrix_Scale(0.1f, 0.1f, 0.1f);
+    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+    glUniform1i(object_id_uniform, PLANE);
+
+    DrawVirtualObject("mesh-10.001_meshId10_name.001");
+    DrawVirtualObject("mesh-7.001_meshId7_name.001");
+    DrawVirtualObject("mesh-6.004_meshId6_name.004");
+    DrawVirtualObject("mesh-5.004_meshId5_name.004");
+    DrawVirtualObject("mesh-8.002_meshId8_name.002");
+    DrawVirtualObject("mesh-8.003_meshId8_name.003");
+    DrawVirtualObject("mesh-5.002_meshId5_name.002");
+    DrawVirtualObject("mesh-6.002_meshId6_name.002");
+    DrawVirtualObject("mesh-9.002_meshId9_name.002");
+    DrawVirtualObject("mesh-10_meshId10_name");
+    DrawVirtualObject("mesh-7_meshId7_name");
+    DrawVirtualObject("mesh-12.003_meshId12_name.003");
+    DrawVirtualObject("mesh-2.002_meshId2_name.002");
+    DrawVirtualObject("mesh-7.004_meshId7_name.004");
+    DrawVirtualObject("mesh-6.001_meshId6_name.001");
+    DrawVirtualObject("mesh-1.002_meshId1_name.002");
+    DrawVirtualObject("mesh-3.004_meshId3_name.004");
+    DrawVirtualObject("mesh-2.004_meshId2_name.004");
+    DrawVirtualObject("mesh-8.001_meshId8_name.001");
+    DrawVirtualObject("mesh-1.004_meshId1_name.004");
+    DrawVirtualObject("mesh-4_meshId4_name");
+    DrawVirtualObject("mesh-0.007_meshId0_name.008");
+    DrawVirtualObject("mesh-1_meshId1_name");
+    DrawVirtualObject("mesh-4.004_meshId4_name.004");
+    DrawVirtualObject("mesh-7.002_meshId7_name.002");
+    DrawVirtualObject("mesh-0.002_meshId0_name.003");
+    DrawVirtualObject("mesh-3_meshId3_name");
+    DrawVirtualObject("mesh-9_meshId9_name");
+    DrawVirtualObject("mesh-0_meshId0_name");
+    DrawVirtualObject("mesh-13_meshId13_name");
+    DrawVirtualObject("mesh-12.001_meshId12_name.001");
+    DrawVirtualObject("mesh-5_meshId5_name");
+    DrawVirtualObject("mesh-4.002_meshId4_name.002");
+    DrawVirtualObject("mesh-3.005_meshId3_name.005");
+    DrawVirtualObject("mesh-3.001_meshId3_name.001");
+    DrawVirtualObject("mesh-0.009_meshId0_name.010");
+    DrawVirtualObject("mesh-2.001_meshId2_name.001");
+    DrawVirtualObject("mesh-10.003_meshId10_name.003");
+    DrawVirtualObject("mesh-11.002_meshId11_name.002");
+    DrawVirtualObject("mesh-6_meshId6_name");
+    DrawVirtualObject("mesh-8.004_meshId8_name.004");
+    DrawVirtualObject("mesh-4.001_meshId4_name.001");
+    DrawVirtualObject("mesh-2_meshId2_name");
+    DrawVirtualObject("mesh-11_meshId11_name");
+    DrawVirtualObject("mesh-13.002_meshId13_name.002");
+    DrawVirtualObject("mesh-9.003_meshId9_name.003");
+    DrawVirtualObject("mesh-9.004_meshId9_name.004");
+    DrawVirtualObject("mesh-10.002_meshId10_name.002");
+    DrawVirtualObject("mesh-3.003_meshId3_name.003");
+    DrawVirtualObject("mesh-0.001_meshId0_name.001");
+    DrawVirtualObject("mesh-1.001_meshId1_name.001");
+    DrawVirtualObject("mesh-12.002_meshId12_name.002");
+    DrawVirtualObject("mesh-2.005_meshId2_name.005");
+    DrawVirtualObject("mesh-7.003_meshId7_name.003");
+    DrawVirtualObject("mesh-5.003_meshId5_name.003");
+    DrawVirtualObject("mesh-13.003_meshId13_name.003");
+    DrawVirtualObject("mesh-1.003_meshId1_name.003");
+    DrawVirtualObject("mesh-11.004_meshId11_name.004");
+    DrawVirtualObject("mesh-4.003_meshId4_name.003");
+    DrawVirtualObject("mesh-14_meshId14_name");
+    DrawVirtualObject("mesh-9.001_meshId9_name.001");
+    DrawVirtualObject("mesh-11.003_meshId11_name.003");
+    DrawVirtualObject("mesh-13.001_meshId13_name.001");
+    DrawVirtualObject("mesh-10.004_meshId10_name.004");
+    DrawVirtualObject("mesh-0.008_meshId0_name.009");
+    DrawVirtualObject("mesh-0.003_meshId0_name.004");
+    DrawVirtualObject("mesh-0.005_meshId0_name.006");
+    DrawVirtualObject("mesh-2.003_meshId2_name.003");
+    DrawVirtualObject("mesh-0.004_meshId0_name.005");
+    DrawVirtualObject("mesh-1.005_meshId1_name.005");
+    DrawVirtualObject("mesh-8_meshId8_name");
+    DrawVirtualObject("mesh-12_meshId12_name");
+    DrawVirtualObject("mesh-0.006_meshId0_name.007");
+    DrawVirtualObject("mesh-11.001_meshId11_name.001");
+    DrawVirtualObject("mesh-3.002_meshId3_name.002");
+    DrawVirtualObject("mesh-6.003_meshId6_name.003");
+    DrawVirtualObject("mesh-5.001_meshId5_name.001");
+    }
+
 // Função que pega a matriz M e guarda a mesma no topo da pilha
 void PushMatrix(glm::mat4 M)
 {
@@ -431,12 +460,6 @@ void PopMatrix(glm::mat4& M)
 // "framebuffer" (região de memória onde são armazenados os pixels da imagem).
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
-    // Indicamos que queremos renderizar em toda região do framebuffer. A
-    // função "glViewport" define o mapeamento das "normalized device
-    // coordinates" (NDC) para "pixel coordinates".  Essa é a operação de
-    // "Screen Mapping" ou "Viewport Mapping" vista em aula ({+ViewportMapping2+}).
-    glViewport(0, 0, width, height);
-
     // Atualizamos também a razão que define a proporção da janela (largura /
     // altura), a qual será utilizada na definição das matrizes de projeção,
     // tal que não ocorra distorções durante o processo de "Screen Mapping"
@@ -445,6 +468,9 @@ void FramebufferSizeCallback(GLFWwindow* window, int width, int height)
     // O cast para float é necessário pois números inteiros são arredondados ao
     // serem divididos!
     g_ScreenRatio = (float)width / height;
+
+    g_Width = width;
+    g_Height = height;
 }
 
 // Variáveis globais que armazenam a última posição do cursor do mouse, para
