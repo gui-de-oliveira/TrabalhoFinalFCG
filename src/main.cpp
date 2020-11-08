@@ -65,10 +65,46 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 
 void DrawWorld(bool drawPlayer, bool drawCamera);
 
-// Abaixo definimos variáveis globais utilizadas em várias funções do código.
+class Camera
+{
+    public:
+    glm::vec4 position;
+    float phi;
+    float theta;
 
+    Camera (float x, float y, float z, float _phi, float _theta);
+
+    glm::vec4 getDirection() {
+        return glm::vec4(
+            cos(phi) * sin(theta),
+            sin(phi),
+            cos(phi) * cos(theta),
+            0.0f);
+    };
+};
+
+Camera::Camera (float _x, float _y, float _z, float _phi, float _theta) {
+    position = glm::vec4(_x, _y, _z, 1.0f);
+    phi = _phi;
+    theta = _theta;
+}
+
+// Abaixo definimos variáveis globais utilizadas em várias funções do código.
 // Vetor "up" fixado para apontar para o "céu" (eito Y global)
-const glm::vec4 UP_VECTOR = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f); 
+glm::vec4 UP_VECTOR = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
+
+Camera g_FixedCamera(-4.87, 1.82, -21.42, -0.51, 0.06);
+Camera g_PlayerCamera(-4.82, 0.42, -17.29, -3.12, 0.10);
+
+glm::vec4 g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
+glm::vec4 g_CameraRelativeForward =  crossproduct(g_CameraRelativeLeft, UP_VECTOR);
+
+bool g_MovingForward = false;
+bool g_MovingBackward = false;
+bool g_MovingLeft = false;
+bool g_MovingRight = false;
+bool g_MovingUp = false;
+bool g_MovingDown = false;
 
 // Pilha que guardará as matrizes de modelagem.
 std::stack<glm::mat4>  g_MatrixStack;
@@ -88,29 +124,6 @@ float g_AngleZ = 0.0f;
 bool g_LeftMouseButtonPressed = false;
 bool g_RightMouseButtonPressed = false; // Análogo para botão direito do mouse
 bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mouse
-
-// Variáveis que definem a câmera em coordenadas esféricas, controladas pelo
-// usuário através do mouse (veja função CursorPosCallback()). A posição
-// efetiva da câmera é calculada dentro da função main(), dentro do loop de
-// renderização.
-float g_CameraDirectionTheta = 0.35f; // Ângulo no plano ZX em relação ao eixo Z
-float g_CameraDirectionPhi = -0.05f;   // Ângulo em relação ao eixo Y
-
-glm::vec4 g_CameraPosition = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-glm::vec4 g_CameraDirection = glm::vec4(
-    cos(g_CameraDirectionPhi) * sin(g_CameraDirectionTheta), 
-    sin(g_CameraDirectionPhi),
-    cos(g_CameraDirectionPhi) * cos(g_CameraDirectionTheta),
-    0.0f);
-glm::vec4 g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_CameraDirection);
-glm::vec4 g_CameraRelativeForward = g_CameraDirection;
-
-bool g_MovingForward = false;
-bool g_MovingBackward = false;
-bool g_MovingLeft = false;
-bool g_MovingRight = false;
-bool g_MovingUp = false;
-bool g_MovingDown = false;
 
 // Variáveis que controlam rotação do antebraço
 float g_ForearmAngleZ = 0.0f;
@@ -269,17 +282,17 @@ int main(int argc, char* argv[])
         glUseProgram(program_id);
 
         // Movimentamos o personagem se alguma tecla estiver pressionada
-        float speed = 50.0f;
-        if(g_MovingForward) g_CameraPosition += speed * delta * g_CameraRelativeForward;
-        if(g_MovingBackward) g_CameraPosition -= speed * delta * g_CameraRelativeForward;
-        if(g_MovingLeft) g_CameraPosition += speed * delta * g_CameraRelativeLeft;
-        if(g_MovingRight) g_CameraPosition -= speed * delta * g_CameraRelativeLeft;
-        if(g_MovingUp) g_CameraPosition += speed * delta * UP_VECTOR;
-        if(g_MovingDown) g_CameraPosition -= speed * delta * UP_VECTOR;
+        float speed = 1.0f;
+        if(g_MovingForward) g_PlayerCamera.position += speed * delta * g_CameraRelativeForward;
+        if(g_MovingBackward) g_PlayerCamera.position -= speed * delta * g_CameraRelativeForward;
+        if(g_MovingLeft) g_PlayerCamera.position += speed * delta * g_CameraRelativeLeft;
+        if(g_MovingRight) g_PlayerCamera.position -= speed * delta * g_CameraRelativeLeft;
+        if(g_MovingUp) g_PlayerCamera.position += speed * delta * UP_VECTOR;
+        if(g_MovingDown) g_PlayerCamera.position -= speed * delta * UP_VECTOR;
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
-        glm::mat4 view = Matrix_Camera_View(g_CameraPosition, g_CameraDirection, UP_VECTOR);
+        glm::mat4 view = Matrix_Camera_View(g_PlayerCamera.position, g_PlayerCamera.getDirection(), UP_VECTOR);
 
         // Note que, no sistema de coordenadas da câmera, os planos near e far
         // estão no sentido negativo! Veja slides 176-204 do documento Aula_09_Projecoes.pdf.
@@ -300,13 +313,7 @@ int main(int argc, char* argv[])
         glClear(GL_DEPTH_BUFFER_BIT);
         glViewport(0, 0, g_Width * 0.25, g_Height * 0.25);
 
-        glm::vec4 position = glm::vec4(-100.76, 45.97, -21.94, 1.0f);
-        float phi = -0.55;
-        float theta = 1.70;
-        glm::vec4 direction = glm::vec4( 
-            cos(phi) * sin(theta), sin(phi), cos(phi) * cos(theta), 0.0f);
-
-        view = Matrix_Camera_View(position, direction, UP_VECTOR);
+        view = Matrix_Camera_View(g_FixedCamera.position, g_FixedCamera.getDirection(), UP_VECTOR);
 
         // Enviamos as matrizes "view" e "projection" para a placa de vídeo
         // (GPU). Veja o arquivo "shader_vertex.glsl", onde estas são
@@ -360,10 +367,10 @@ void DrawWorld(bool drawPlayer, bool drawCamera){
     
     if (drawPlayer) {
         // Desenhamos o player
-        model = Matrix_Translate(g_CameraPosition.x, g_CameraPosition.y - 10.0, g_CameraPosition.z)
-            * Matrix_Scale(50.0f, 50.0f, 50.0f)
-            * Matrix_Rotate_Y(g_CameraDirectionTheta)
-            * Matrix_Rotate_X(-g_CameraDirectionPhi * 0.5);
+        model = Matrix_Translate(g_PlayerCamera.position.x, g_PlayerCamera.position.y, g_PlayerCamera.position.z)
+            * Matrix_Scale(0.5f, 0.5f, 0.5f)
+            * Matrix_Rotate_Y(g_PlayerCamera.theta)
+            * Matrix_Rotate_X(-g_PlayerCamera.phi * 0.5);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
 
@@ -371,14 +378,11 @@ void DrawWorld(bool drawPlayer, bool drawCamera){
     }
 
     if (drawCamera) {
-
-         glm::vec4 position = glm::vec4(-100.76, 45.97, -21.94, 1.0f);
-        float phi = -0.55;
-        float theta = 1.70;
-        
-        model = Matrix_Translate(position.x + 6.0, position.y, position.z - 4.0)
-            * Matrix_Rotate_Y(theta)
-            * Matrix_Rotate_X(-phi * 0.5);
+        model = Matrix_Translate(g_FixedCamera.position.x, g_FixedCamera.position.y, g_FixedCamera.position.z)
+            // * Matrix_Translate(g_FixedCamera.position)
+            * Matrix_Rotate_Y(g_FixedCamera.theta)
+            * Matrix_Rotate_X(g_FixedCamera.phi + 3.141592 * 0.25)
+            * Matrix_Scale(0.05, 0.05, 0.05);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
 
@@ -580,30 +584,23 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
         float dx = xpos - g_LastCursorPosX;
         float dy = ypos - g_LastCursorPosY;
-    
+
         // Atualizamos parâmetros da câmera com os deslocamentos
-        g_CameraDirectionTheta -= 0.01f*dx;
-        g_CameraDirectionPhi   += 0.01f*dy;
-    
+        g_PlayerCamera.theta -= 0.01f*dx;
+        g_PlayerCamera.phi   += 0.01f*dy;
+
         // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
         float phimax = 3.141592f/2;
         float phimin = -phimax;
-    
-        if (g_CameraDirectionPhi > phimax)
-            g_CameraDirectionPhi = phimax;
-    
-        if (g_CameraDirectionPhi < phimin)
-            g_CameraDirectionPhi = phimin;
-    
-        // Atualizamos a direção da câmera
-        g_CameraDirection = glm::vec4(
-            cos(g_CameraDirectionPhi) * sin(g_CameraDirectionTheta), 
-            sin(g_CameraDirectionPhi),
-            cos(g_CameraDirectionPhi) * cos(g_CameraDirectionTheta),
-            0.0f);
+
+        if (g_PlayerCamera.phi > phimax)
+            g_PlayerCamera.phi = phimax;
+
+        if (g_PlayerCamera.phi < phimin)
+            g_PlayerCamera.phi = phimin;
 
         // Atualizamos as novas direções relativas
-        g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_CameraDirection);
+        g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
         g_CameraRelativeLeft /= norm(g_CameraRelativeLeft);
 
         g_CameraRelativeForward = crossproduct(g_CameraRelativeLeft, UP_VECTOR);
@@ -620,11 +617,11 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
         float dx = xpos - g_LastCursorPosX;
         float dy = ypos - g_LastCursorPosY;
-    
+
         // Atualizamos parâmetros da antebraço com os deslocamentos
         g_ForearmAngleZ -= 0.01f*dx;
         g_ForearmAngleX += 0.01f*dy;
-    
+
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
         g_LastCursorPosX = xpos;
@@ -636,11 +633,11 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
         float dx = xpos - g_LastCursorPosX;
         float dy = ypos - g_LastCursorPosY;
-    
+
         // Atualizamos parâmetros da antebraço com os deslocamentos
         g_TorsoPositionX += 0.01f*dx;
         g_TorsoPositionY -= 0.01f*dy;
-    
+
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
         g_LastCursorPosX = xpos;
@@ -667,7 +664,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     // Se o usuário pressionar a tecla ESC, fechamos a janela.
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
-    
+
     // Movimentação da câmera
     if (key == GLFW_KEY_W) g_MovingForward = IsActionPressed(action);
     if (key == GLFW_KEY_S) g_MovingBackward = IsActionPressed(action);
@@ -769,10 +766,10 @@ void TextRendering_PrintCameraStats(GLFWwindow* window)
     float pad = TextRendering_LineHeight(window);
 
     char buffer[80];
-    snprintf(buffer, 80, "Camera Direction = Phi: (%.2f), Theta: (%.2f)\n", g_CameraDirectionPhi, g_CameraDirectionTheta);
+    snprintf(buffer, 80, "Camera Direction = Phi: (%.2f), Theta: (%.2f)\n", g_PlayerCamera.phi, g_PlayerCamera.theta);
     TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+pad, 1.0f);
 
-    snprintf(buffer, 80, "Camera position = X: (%.2f), Y: (%.2f), Z: (%.2f)\n", g_CameraPosition.x, g_CameraPosition.y, g_CameraPosition.z);
+    snprintf(buffer, 80, "Camera position = X: (%.2f), Y: (%.2f), Z: (%.2f)\n", g_PlayerCamera.position.x, g_PlayerCamera.position.y, g_PlayerCamera.position.z);
     TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f, 1.0f);
 
 }
@@ -817,7 +814,7 @@ void TextRendering_ShowFramesPerSecond(GLFWwindow* window)
     if ( ellapsed_seconds > 1.0f )
     {
         numchars = snprintf(buffer, 20, "%.2f fps", ellapsed_frames / ellapsed_seconds);
-    
+
         old_seconds = seconds;
         ellapsed_frames = 0;
     }
