@@ -52,8 +52,9 @@ void PopMatrix(glm::mat4& M);
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
 void TextRendering_PrintCameraStats(GLFWwindow* window);
-void TextRendering_ShowProjection(GLFWwindow* window);
+void TextRendering_ShowMode(GLFWwindow* window, string mode);
 void TextRendering_ShowFramesPerSecond(GLFWwindow* window);
+void TextRendering_PrintMoveStats(GLFWwindow* window, glm::vec4 position);
 
 // Funções callback para comunicação com o sistema operacional e interação do
 // usuário. Veja mais comentários nas definições das mesmas, abaixo.
@@ -106,8 +107,14 @@ bool g_MovingRight = false;
 bool g_MovingUp = false;
 bool g_MovingDown = false;
 
+bool g_ModShift = false;
+
+glm::vec4 g_Position = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
 // Pilha que guardará as matrizes de modelagem.
 std::stack<glm::mat4>  g_MatrixStack;
+
+string g_Mode = "PLAYER";
 
 // Razão de proporção da janela (largura/altura). Veja função FramebufferSizeCallback().
 float g_ScreenRatio = 1.0f;
@@ -227,11 +234,11 @@ int main(int argc, char* argv[])
     ComputeNormals(&planemodel);
     BuildTrianglesAndAddToVirtualScene(&planemodel);
 
-    ObjModel fortressModel("../../data/Forsaken Fortress Inside.obj");
-    ComputeNormals(&fortressModel);
-    BuildTrianglesAndAddToVirtualScene(&fortressModel);
+    ObjModel mansionModel("../../data/hallway.obj");
+    ComputeNormals(&mansionModel);
+    BuildTrianglesAndAddToVirtualScene(&mansionModel);
 
-    ObjModel linkModel("../../data/Link 0.obj");
+    ObjModel linkModel("../../data/Link0.obj");
     ComputeNormals(&linkModel);
     BuildTrianglesAndAddToVirtualScene(&linkModel);
 
@@ -324,13 +331,15 @@ int main(int argc, char* argv[])
         DrawWorld(true, false);
 
         glViewport(0, 0, g_Width, g_Height);
-        
-        // Imprimimos na tela os ângulos de Euler que controlam a rotação do
-        // terceiro cubo.
-        TextRendering_PrintCameraStats(window);
 
-        // Imprimimos na informação sobre a matriz de projeção sendo utilizada.
-        TextRendering_ShowProjection(window);
+        TextRendering_ShowMode(window, g_Mode);
+        if(g_Mode.compare("PLAYER") == 0){
+            TextRendering_PrintCameraStats(window);
+        }
+
+        if(g_Mode.compare("MOVE") == 0){
+            TextRendering_PrintMoveStats(window, g_Position);
+        }
 
         // Imprimimos na tela informação sobre o número de quadros renderizados
         // por segundo (frames per second).
@@ -364,7 +373,7 @@ int main(int argc, char* argv[])
 
 void DrawWorld(bool drawPlayer, bool drawCamera){
     glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
-    
+
     if (drawPlayer) {
         // Desenhamos o player
         model = Matrix_Translate(g_PlayerCamera.position.x, g_PlayerCamera.position.y, g_PlayerCamera.position.z)
@@ -389,88 +398,49 @@ void DrawWorld(bool drawPlayer, bool drawCamera){
         DrawVirtualObject("camera_reference");
     }
     // Desenhamos a fortaleza
-    model = Matrix_Translate(445.41, -90.66f, -16.00f)
-        * Matrix_Scale(0.1f, 0.1f, 0.1f);
+    model = Matrix_Translate(0.0f, 0.0f, 0.0f)
+        * Matrix_Scale(1.0f, 1.0f, 1.0f);
     glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-    glUniform1i(object_id_uniform, PLANE);
 
-    DrawVirtualObject("mesh-10.001_meshId10_name.001");
-    DrawVirtualObject("mesh-7.001_meshId7_name.001");
-    DrawVirtualObject("mesh-6.004_meshId6_name.004");
-    DrawVirtualObject("mesh-5.004_meshId5_name.004");
-    DrawVirtualObject("mesh-8.002_meshId8_name.002");
-    DrawVirtualObject("mesh-8.003_meshId8_name.003");
-    DrawVirtualObject("mesh-5.002_meshId5_name.002");
-    DrawVirtualObject("mesh-6.002_meshId6_name.002");
-    DrawVirtualObject("mesh-9.002_meshId9_name.002");
-    DrawVirtualObject("mesh-10_meshId10_name");
-    DrawVirtualObject("mesh-7_meshId7_name");
-    DrawVirtualObject("mesh-12.003_meshId12_name.003");
-    DrawVirtualObject("mesh-2.002_meshId2_name.002");
-    DrawVirtualObject("mesh-7.004_meshId7_name.004");
-    DrawVirtualObject("mesh-6.001_meshId6_name.001");
-    DrawVirtualObject("mesh-1.002_meshId1_name.002");
-    DrawVirtualObject("mesh-3.004_meshId3_name.004");
-    DrawVirtualObject("mesh-2.004_meshId2_name.004");
-    DrawVirtualObject("mesh-8.001_meshId8_name.001");
-    DrawVirtualObject("mesh-1.004_meshId1_name.004");
-    DrawVirtualObject("mesh-4_meshId4_name");
-    DrawVirtualObject("mesh-0.007_meshId0_name.008");
-    DrawVirtualObject("mesh-1_meshId1_name");
-    DrawVirtualObject("mesh-4.004_meshId4_name.004");
-    DrawVirtualObject("mesh-7.002_meshId7_name.002");
-    DrawVirtualObject("mesh-0.002_meshId0_name.003");
-    DrawVirtualObject("mesh-3_meshId3_name");
-    DrawVirtualObject("mesh-9_meshId9_name");
-    DrawVirtualObject("mesh-0_meshId0_name");
-    DrawVirtualObject("mesh-13_meshId13_name");
-    DrawVirtualObject("mesh-12.001_meshId12_name.001");
-    DrawVirtualObject("mesh-5_meshId5_name");
-    DrawVirtualObject("mesh-4.002_meshId4_name.002");
-    DrawVirtualObject("mesh-3.005_meshId3_name.005");
-    DrawVirtualObject("mesh-3.001_meshId3_name.001");
-    DrawVirtualObject("mesh-0.009_meshId0_name.010");
-    DrawVirtualObject("mesh-2.001_meshId2_name.001");
-    DrawVirtualObject("mesh-10.003_meshId10_name.003");
-    DrawVirtualObject("mesh-11.002_meshId11_name.002");
-    DrawVirtualObject("mesh-6_meshId6_name");
-    DrawVirtualObject("mesh-8.004_meshId8_name.004");
-    DrawVirtualObject("mesh-4.001_meshId4_name.001");
-    DrawVirtualObject("mesh-2_meshId2_name");
-    DrawVirtualObject("mesh-11_meshId11_name");
-    DrawVirtualObject("mesh-13.002_meshId13_name.002");
-    DrawVirtualObject("mesh-9.003_meshId9_name.003");
-    DrawVirtualObject("mesh-9.004_meshId9_name.004");
-    DrawVirtualObject("mesh-10.002_meshId10_name.002");
-    DrawVirtualObject("mesh-3.003_meshId3_name.003");
-    DrawVirtualObject("mesh-0.001_meshId0_name.001");
-    DrawVirtualObject("mesh-1.001_meshId1_name.001");
-    DrawVirtualObject("mesh-12.002_meshId12_name.002");
-    DrawVirtualObject("mesh-2.005_meshId2_name.005");
-    DrawVirtualObject("mesh-7.003_meshId7_name.003");
-    DrawVirtualObject("mesh-5.003_meshId5_name.003");
-    DrawVirtualObject("mesh-13.003_meshId13_name.003");
-    DrawVirtualObject("mesh-1.003_meshId1_name.003");
-    DrawVirtualObject("mesh-11.004_meshId11_name.004");
-    DrawVirtualObject("mesh-4.003_meshId4_name.003");
-    DrawVirtualObject("mesh-14_meshId14_name");
-    DrawVirtualObject("mesh-9.001_meshId9_name.001");
-    DrawVirtualObject("mesh-11.003_meshId11_name.003");
-    DrawVirtualObject("mesh-13.001_meshId13_name.001");
-    DrawVirtualObject("mesh-10.004_meshId10_name.004");
-    DrawVirtualObject("mesh-0.008_meshId0_name.009");
-    DrawVirtualObject("mesh-0.003_meshId0_name.004");
-    DrawVirtualObject("mesh-0.005_meshId0_name.006");
-    DrawVirtualObject("mesh-2.003_meshId2_name.003");
-    DrawVirtualObject("mesh-0.004_meshId0_name.005");
-    DrawVirtualObject("mesh-1.005_meshId1_name.005");
-    DrawVirtualObject("mesh-8_meshId8_name");
-    DrawVirtualObject("mesh-12_meshId12_name");
-    DrawVirtualObject("mesh-0.006_meshId0_name.007");
-    DrawVirtualObject("mesh-11.001_meshId11_name.001");
-    DrawVirtualObject("mesh-3.002_meshId3_name.002");
-    DrawVirtualObject("mesh-6.003_meshId6_name.003");
-    DrawVirtualObject("mesh-5.001_meshId5_name.001");
+    DrawVirtualObject("part8_texture6");
+    DrawVirtualObject("part0_texture11");
+    DrawVirtualObject("part12_texture10");
+    DrawVirtualObject("part2_texture13");
+    DrawVirtualObject("part5_texture3");
+    DrawVirtualObject("part6_texture4");
+    DrawVirtualObject("part10_texture8");
+    DrawVirtualObject("part3_texture14");
+    DrawVirtualObject("part11_texture9");
+    DrawVirtualObject("part7_texture5");
+    DrawVirtualObject("part9_texture7");
+    DrawVirtualObject("part2_texture1");
+    DrawVirtualObject("part1_texture0");
+    DrawVirtualObject("part0_texture0");
+    DrawVirtualObject("part0_texture11.001");
+
+    // Desenhamos a fortaleza
+    model = Matrix_Translate(g_Position.x, g_Position.y, g_Position.z)
+        * Matrix_Translate(-9.72, 0.0, -34.46)
+        * Matrix_Scale(1.0f, 1.0f, 1.0f)
+        * Matrix_Rotate_Y(3.141592);
+    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+
+    DrawVirtualObject("part8_texture6");
+    DrawVirtualObject("part0_texture11");
+    DrawVirtualObject("part12_texture10");
+    DrawVirtualObject("part2_texture13");
+    DrawVirtualObject("part5_texture3");
+    DrawVirtualObject("part6_texture4");
+    DrawVirtualObject("part10_texture8");
+    DrawVirtualObject("part3_texture14");
+    DrawVirtualObject("part11_texture9");
+    DrawVirtualObject("part7_texture5");
+    DrawVirtualObject("part9_texture7");
+    DrawVirtualObject("part2_texture1");
+    DrawVirtualObject("part1_texture0");
+    DrawVirtualObject("part0_texture0");
+    DrawVirtualObject("part0_texture11.001");
+
     }
 
 // Função que pega a matriz M e guarda a mesma no topo da pilha
@@ -618,9 +588,9 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         float dx = xpos - g_LastCursorPosX;
         float dy = ypos - g_LastCursorPosY;
 
-        // Atualizamos parâmetros da antebraço com os deslocamentos
-        g_ForearmAngleZ -= 0.01f*dx;
-        g_ForearmAngleX += 0.01f*dy;
+        float modifier = g_ModShift ? 0.1f : 1.0f;
+        g_Position -= g_CameraRelativeLeft * 0.25f * dx * modifier;
+        g_Position -= UP_VECTOR * 0.25f * dy * modifier;
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
@@ -634,9 +604,9 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
         float dx = xpos - g_LastCursorPosX;
         float dy = ypos - g_LastCursorPosY;
 
-        // Atualizamos parâmetros da antebraço com os deslocamentos
-        g_TorsoPositionX += 0.01f*dx;
-        g_TorsoPositionY -= 0.01f*dy;
+        float modifier = g_ModShift ? 0.1f : 1.0f;
+        g_Position -= g_CameraRelativeLeft * 0.25f * dx * modifier;
+        g_Position -= g_PlayerCamera.getDirection() * 0.25f * dy * modifier;
 
         // Atualizamos as variáveis globais para armazenar a posição atual do
         // cursor como sendo a última posição conhecida do cursor.
@@ -672,6 +642,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_D) g_MovingRight = IsActionPressed(action);
     if (key == GLFW_KEY_Q) g_MovingUp = IsActionPressed(action);
     if (key == GLFW_KEY_E) g_MovingDown = IsActionPressed(action);
+
+    if (mod == GLFW_MOD_SHIFT) g_ModShift = IsActionPressed(action);
+
+    if(key == GLFW_KEY_P && IsActionPressed(action)) g_Mode = "PLAYER";
+    if(key == GLFW_KEY_M && IsActionPressed(action)) g_Mode = "MOVE";
 
     // Se o usuário apertar a tecla H, fazemos um "toggle" do texto informativo mostrado na tela.
     if (key == GLFW_KEY_H && action == GLFW_PRESS)
@@ -756,8 +731,6 @@ void TextRendering_ShowModelViewProjection(
     TextRendering_PrintMatrixVectorProductMoreDigits(window, viewport_mapping, p_ndc, -1.0f, 1.0f-26*pad, 1.0f);
 }
 
-// Escrevemos na tela os ângulos de Euler definidos nas variáveis globais
-// g_AngleX, g_AngleY, e g_AngleZ.
 void TextRendering_PrintCameraStats(GLFWwindow* window)
 {
     if ( !g_ShowInfoText )
@@ -774,8 +747,21 @@ void TextRendering_PrintCameraStats(GLFWwindow* window)
 
 }
 
+void TextRendering_PrintMoveStats(GLFWwindow* window, glm::vec4 position)
+{
+    if ( !g_ShowInfoText )
+        return;
+
+    float pad = TextRendering_LineHeight(window);
+
+    char buffer[80];
+
+    snprintf(buffer, 80, "Camera position = X: (%.2f), Y: (%.2f), Z: (%.2f)\n", position.x, position.y, position.z);
+    TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f, 1.0f);
+}
+
 // Escrevemos na tela qual matriz de projeção está sendo utilizada.
-void TextRendering_ShowProjection(GLFWwindow* window)
+void TextRendering_ShowMode(GLFWwindow* window, string mode)
 {
     if ( !g_ShowInfoText )
         return;
@@ -783,10 +769,7 @@ void TextRendering_ShowProjection(GLFWwindow* window)
     float lineheight = TextRendering_LineHeight(window);
     float charwidth = TextRendering_CharWidth(window);
 
-    if ( g_UsePerspectiveProjection )
-        TextRendering_PrintString(window, "Perspective", 1.0f-13*charwidth, -1.0f+2*lineheight/10, 1.0f);
-    else
-        TextRendering_PrintString(window, "Orthographic", 1.0f-13*charwidth, -1.0f+2*lineheight/10, 1.0f);
+    TextRendering_PrintString(window, mode, 1.0f-strlen(mode.c_str())*charwidth, -1.0f+2*lineheight/10, 1.0f);
 }
 
 // Escrevemos na tela o número de quadros renderizados por segundo (frames per

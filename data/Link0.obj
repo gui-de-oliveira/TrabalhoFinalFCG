@@ -1,6 +1,6 @@
 # Blender v2.90.1 OBJ File: ''
 # www.blender.org
-mtllib ../../data/link0.mtl
+mtllib ../../data/Link0.mtl
 o link_model_0
 v 0.050957 0.746309 0.180998
 v 0.003522 0.784072 0.152226

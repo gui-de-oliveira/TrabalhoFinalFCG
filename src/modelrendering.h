@@ -100,6 +100,11 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
     std::vector<float>  normal_coefficients;
     std::vector<float>  texture_coefficients;
 
+    for (size_t material = 0; material < model->materials.size(); ++material)
+    {
+        cout << model->materials[material].diffuse_texname << endl;
+    }
+
     for (size_t shape = 0; shape < model->shapes.size(); ++shape)
     {
         size_t first_index = indices.size();
