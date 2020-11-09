@@ -1,0 +1,145 @@
+# Blender MTL File: 'None'
+# Material Count: 13
+
+newmtl de_00
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_00.png
+
+newmtl de_01
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_01.png
+
+newmtl de_hair00
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair00.png
+
+newmtl de_hair01
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair01.png
+
+newmtl de_hair02
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair02.png
+
+newmtl de_hair03
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair03.png
+
+newmtl de_hair04
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair04.png
+
+newmtl de_hair05
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair05.png
+
+newmtl de_hair06
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair06.png
+
+newmtl robe00a
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_robe00.png
+
+newmtl robe00b
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_robe00.png
+
+newmtl robe01
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_robe01.png
+
+newmtl robe02
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\robe02.png

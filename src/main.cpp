@@ -95,7 +95,7 @@ Camera::Camera (float _x, float _y, float _z, float _phi, float _theta) {
 glm::vec4 UP_VECTOR = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
 Camera g_FixedCamera(-4.87, 1.82, -21.42, -0.51, 0.06);
-Camera g_PlayerCamera(-4.82, 0.42, -17.29, -3.12, 0.10);
+Camera g_PlayerCamera(-4.82, 0.42, -17.29, 0.20, 3.10);
 
 glm::vec4 g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
 glm::vec4 g_CameraRelativeForward =  crossproduct(g_CameraRelativeLeft, UP_VECTOR);
@@ -218,8 +218,22 @@ int main(int argc, char* argv[])
     LoadShadersFromFiles();
 
     // Carregamos duas imagens para serem utilizadas como textura
-    LoadTextureImage("../../data/tc-earth_daymap_surface.jpg");      // TextureImage0
-    LoadTextureImage("../../data/tc-earth_nightmap_citylights.gif"); // TextureImage1
+
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_00.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_00.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_00.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_01.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair00.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair01.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair02.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair03.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair04.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair05.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_hair06.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_robe00.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_robe00.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\de_robe01.png");
+    LoadTextureImage("C:\\Users\\Guilherme Oliveira\\Downloads\\apicula-latest-x86_64-pc-windows-msvc\\asdas\\robe02.png");
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
@@ -246,6 +260,10 @@ int main(int argc, char* argv[])
     ComputeNormals(&cameraModel);
     BuildTrianglesAndAddToVirtualScene(&cameraModel);
 
+    ObjModel kingModel("../../data/king.obj");
+    ComputeNormals(&kingModel);
+    BuildTrianglesAndAddToVirtualScene(&kingModel);
+
     if ( argc > 1 )
     {
         ObjModel model(argv[1]);
@@ -259,9 +277,10 @@ int main(int argc, char* argv[])
     glEnable(GL_DEPTH_TEST);
 
     // Habilitamos o Backface Culling. Veja slides 23-34 do documento Aula_13_Clipping_and_Culling.pdf.
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    // glEnable(GL_CULL_FACE);
+    glDisable(GL_CULL_FACE);
+    // glCullFace(GL_BACK);
+    // glFrontFace(GL_CCW);
 
     // Variáveis auxiliares utilizadas para chamada à função
     // TextRendering_ShowModelViewProjection(), armazenando matrizes 4x4.
@@ -280,7 +299,10 @@ int main(int argc, char* argv[])
         // função "glViewport" define o mapeamento das "normalized device
         // coordinates" (NDC) para "pixel coordinates".  Essa é a operação de
         // "Screen Mapping" ou "Viewport Mapping" vista em aula ({+ViewportMapping2+}).
-        glEnable(GL_SCISSOR_TEST);
+        // glEnable(GL_SCISSOR_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
         glViewport(0, 0, g_Width, g_Height);
 
         //Pintamos tudo de branco e reiniciamos o Z-BUFFER
@@ -370,6 +392,7 @@ int main(int argc, char* argv[])
 #define SPHERE 0
 #define BUNNY  1
 #define PLANE  2
+#define LINK  3
 
 void DrawWorld(bool drawPlayer, bool drawCamera){
     glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
@@ -381,10 +404,12 @@ void DrawWorld(bool drawPlayer, bool drawCamera){
             * Matrix_Rotate_Y(g_PlayerCamera.theta)
             * Matrix_Rotate_X(-g_PlayerCamera.phi * 0.5);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, LINK);
 
         DrawVirtualObject("link_model_0");
     }
+
+
 
     if (drawCamera) {
         model = Matrix_Translate(g_FixedCamera.position.x, g_FixedCamera.position.y, g_FixedCamera.position.z)
@@ -401,6 +426,7 @@ void DrawWorld(bool drawPlayer, bool drawCamera){
     model = Matrix_Translate(0.0f, 0.0f, 0.0f)
         * Matrix_Scale(1.0f, 1.0f, 1.0f);
     glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+    glUniform1i(object_id_uniform, PLANE);
 
     DrawVirtualObject("part8_texture6");
     DrawVirtualObject("part0_texture11");
@@ -440,6 +466,14 @@ void DrawWorld(bool drawPlayer, bool drawCamera){
     DrawVirtualObject("part1_texture0");
     DrawVirtualObject("part0_texture0");
     DrawVirtualObject("part0_texture11.001");
+
+    model = Matrix_Translate(-4.82, 0.42, -17.29)
+        * Matrix_Scale(0.5f, 0.5f, 0.5f);
+        
+    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+    glUniform1i(object_id_uniform, LINK);
+
+    DrawVirtualObject("demyx");
 
     }
 

@@ -99,6 +99,7 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
     std::vector<float>  model_coefficients;
     std::vector<float>  normal_coefficients;
     std::vector<float>  texture_coefficients;
+    std::vector<float>  material_ids;
 
     for (size_t material = 0; material < model->materials.size(); ++material)
     {
@@ -119,6 +120,7 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
         for (size_t triangle = 0; triangle < num_triangles; ++triangle)
         {
             assert(model->shapes[shape].mesh.num_face_vertices[triangle] == 3);
+            
 
             for (size_t vertex = 0; vertex < 3; ++vertex)
             {
@@ -165,6 +167,10 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
                     texture_coefficients.push_back( u );
                     texture_coefficients.push_back( v );
                 }
+
+                float id = model->shapes[shape].mesh.material_ids[triangle];
+                material_ids.push_back(id);
+                material_ids.push_back(id);
             }
         }
 
@@ -217,8 +223,22 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
         glBindBuffer(GL_ARRAY_BUFFER, VBO_texture_coefficients_id);
         glBufferData(GL_ARRAY_BUFFER, texture_coefficients.size() * sizeof(float), NULL, GL_STATIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, texture_coefficients.size() * sizeof(float), texture_coefficients.data());
-        location = 2; // "(location = 1)" em "shader_vertex.glsl"
+        location = 2; // "(location = 2)" em "shader_vertex.glsl"
         number_of_dimensions = 2; // vec2 em "shader_vertex.glsl"
+        glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, 0);
+        glEnableVertexAttribArray(location);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+
+    if ( !material_ids.empty() )
+    {
+        GLuint VBO_material_id;
+        glGenBuffers(1, &VBO_material_id);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO_material_id);
+        glBufferData(GL_ARRAY_BUFFER, material_ids.size() * sizeof(float), NULL, GL_STATIC_DRAW);
+        glBufferSubData(GL_ARRAY_BUFFER, 0, material_ids.size() * sizeof(float), material_ids.data());
+        location = 3; // "(location = 3)" em "shader_vertex.glsl"
+        number_of_dimensions = 2; // int em "shader_vertex.glsl"
         glVertexAttribPointer(location, number_of_dimensions, GL_FLOAT, GL_FALSE, 0, 0);
         glEnableVertexAttribArray(location);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -349,7 +369,20 @@ void LoadShadersFromFiles()
     glUseProgram(program_id);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage0"), 0);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage1"), 1);
-    glUniform1i(glGetUniformLocation(program_id, "TextureImage2"), 2);
+
+    glUniform1i(glGetUniformLocation(program_id, "Link0"), 2);
+    glUniform1i(glGetUniformLocation(program_id, "Link1"), 3);
+    glUniform1i(glGetUniformLocation(program_id, "Link2"), 4);
+    glUniform1i(glGetUniformLocation(program_id, "Link3"), 5);
+    glUniform1i(glGetUniformLocation(program_id, "Link4"), 6);
+    glUniform1i(glGetUniformLocation(program_id, "Link5"), 7);
+    glUniform1i(glGetUniformLocation(program_id, "Link6"), 8);
+    glUniform1i(glGetUniformLocation(program_id, "Link7"), 9);
+    glUniform1i(glGetUniformLocation(program_id, "Link8"), 10);
+    glUniform1i(glGetUniformLocation(program_id, "Link9"), 11);
+    glUniform1i(glGetUniformLocation(program_id, "Link10"), 12);
+    glUniform1i(glGetUniformLocation(program_id, "Link11"), 13);
+    glUniform1i(glGetUniformLocation(program_id, "Link12"), 14);
     glUseProgram(0);
 }
 
@@ -461,7 +494,7 @@ void LoadTextureImage(const char* filename)
     int width;
     int height;
     int channels;
-    unsigned char *data = stbi_load(filename, &width, &height, &channels, 3);
+    unsigned char *data = stbi_load(filename, &width, &height, &channels, 4);
 
     if ( data == NULL )
     {
@@ -494,7 +527,13 @@ void LoadTextureImage(const char* filename)
     GLuint textureunit = g_NumLoadedTextures;
     glActiveTexture(GL_TEXTURE0 + textureunit);
     glBindTexture(GL_TEXTURE_2D, texture_id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+    if(channels == 4) {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+    } else {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_SRGB8_ALPHA8, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+    }
+
     glGenerateMipmap(GL_TEXTURE_2D);
     glBindSampler(textureunit, sampler_id);
 

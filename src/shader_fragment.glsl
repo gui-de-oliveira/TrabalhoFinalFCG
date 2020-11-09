@@ -13,6 +13,8 @@ in vec4 position_model;
 // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
 in vec2 texcoords;
 
+flat in vec2 material_id;
+
 // Matrizes computadas no código C++ e enviadas para a GPU
 uniform mat4 model;
 uniform mat4 view;
@@ -22,6 +24,8 @@ uniform mat4 projection;
 #define SPHERE 0
 #define BUNNY  1
 #define PLANE  2
+#define LINK  3
+
 uniform int object_id;
 
 // Parâmetros da axis-aligned bounding box (AABB) do modelo
@@ -31,17 +35,74 @@ uniform vec4 bbox_max;
 // Variáveis para acesso das imagens de textura
 uniform sampler2D TextureImage0;
 uniform sampler2D TextureImage1;
-uniform sampler2D TextureImage2;
+
+uniform sampler2D Link0;
+uniform sampler2D Link1;
+uniform sampler2D Link2;
+uniform sampler2D Link3;
+uniform sampler2D Link4;
+uniform sampler2D Link5;
+uniform sampler2D Link6;
+uniform sampler2D Link7;
+uniform sampler2D Link8;
+uniform sampler2D Link9;
+uniform sampler2D Link10;
+uniform sampler2D Link11;
+uniform sampler2D Link12;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
-out vec3 color;
+out vec4 color;
 
 // Constantes
 #define M_PI   3.14159265358979323846
 #define M_PI_2 1.57079632679489661923
 
+sampler2D select(float i){
+    float U = texcoords.x;
+    float V = texcoords.y;
+
+    switch(int(i)) {
+        case 0: return Link0;
+        case 1: return Link1;
+        case 2: return Link2;
+        case 3: return Link3;
+        case 4: return Link4;
+        case 5: return Link5;
+        case 6: return Link6;
+        case 7: return Link7;
+        case 8: return Link8;
+        case 9: return Link9;
+        case 10: return Link10;
+        case 11: return Link11;
+        case 12: return Link12;
+    }
+
+    return TextureImage0;
+}
+
 void main()
 {
+
+    // Coordenadas de textura U e V
+    float U = 0.0;
+    float V = 0.0;
+
+    if (object_id == LINK)
+    {
+        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
+        U = texcoords.x;
+        V = texcoords.y;
+
+        color = texture(select(material_id.x), vec2(U,V));
+
+        if(color.a < 0.6){
+            discard;
+            return;
+        }
+
+        return;
+    }
+
     // Obtemos a posição da câmera utilizando a inversa da matriz que define o
     // sistema de coordenadas da câmera.
     vec4 origin = vec4(0.0, 0.0, 0.0, 1.0);
@@ -64,9 +125,7 @@ void main()
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
 
-    // Coordenadas de textura U e V
-    float U = 0.0;
-    float V = 0.0;
+
 
     if ( object_id == SPHERE )
     {
@@ -117,12 +176,6 @@ void main()
         U = (position_model.x - minx)/(maxx-minx);
         V = (position_model.y - miny)/(maxy-miny);
     }
-    else if ( object_id == PLANE )
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-    }
     else
     {
         // Coordenadas de textura do plano, obtidas do arquivo OBJ.
@@ -138,11 +191,13 @@ void main()
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
 
-    color = Kd0 * (lambert + 0.01);
-    color += Kd1 * max(0, (1 - ((lambert + 0.01) * 5.0)));
+    vec3 color3 = Kd0 * (lambert + 0.01);
+    color3 += Kd1 * max(0, (1 - ((lambert + 0.01) * 5.0)));
 
     // Cor final com correção gamma, considerando monitor sRGB.
     // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
-    color = pow(color, vec3(1.0,1.0,1.0)/2.2);
+    color3 = pow(color3, vec3(1.0,1.0,1.0)/2.2);
+
+    color = vec4(color3, 1.0);
 }
 
