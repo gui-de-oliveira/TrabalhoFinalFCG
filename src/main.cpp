@@ -44,6 +44,11 @@
 #include "matrices.h"
 #include "textrendering.h"
 #include "modelrendering.h"
+#include "camera.h"
+#include "model_instance_and_type.h"
+
+#define M_PI   3.14159265358979323846
+#define M_PI_2 1.57079632679489661923
 
 // Declaração de funções utilizadas para pilha de matrizes de modelagem.
 void PushMatrix(glm::mat4 M);
@@ -64,60 +69,7 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 
 void DrawWorld(bool drawPlayer, bool drawCamera);
 
-class Camera
-{
-    public:
-    glm::vec4 position;
-    float phi;
-    float theta;
 
-    Camera (float x, float y, float z, float _phi, float _theta);
-
-    glm::vec4 getDirection() {
-        return glm::vec4(
-            cos(phi) * sin(theta),
-            sin(phi),
-            cos(phi) * cos(theta),
-            0.0f);
-    };
-};
-
-Camera::Camera (float _x, float _y, float _z, float _phi, float _theta) {
-    position = glm::vec4(_x, _y, _z, 1.0f);
-    phi = _phi;
-    theta = _theta;
-}
-
-class ModelType
-{
-    public:
-    void (*drawObject)();
-    glm::vec3 scale = glm::vec3(1.0, 1.0, 1.0);
-
-    ModelType(glm::vec3 _scale, void (*_drawObject)()) {
-        scale = _scale;
-        drawObject = _drawObject;
-    }
-};
-class Instance
-{
-    public:
-    glm::vec4 position;
-    glm::vec3 rotation;
-    glm::vec3 scale = glm::vec3(1.0, 1.0, 1.0);
-    ModelType* object;
-
-    Instance(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation, glm::vec3 _scale) {
-        scale = _scale;
-        Instance(_object, _position, _rotation);
-    }
-
-    Instance(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation) {
-        position = _position;
-        rotation = _rotation;
-        object = _object;
-    }
-};
 
 #define SPHERE 0
 #define BUNNY  1
@@ -127,11 +79,10 @@ class Instance
 
 void drawCorridorObject(){
     glUniform1i(object_id_uniform, CORRIDOR);
-    DrawVirtualObject("box-0");
-    DrawVirtualObject("box-1");
-    DrawVirtualObject("box-2");
+    DrawVirtualObject("corridor2");
+    DrawVirtualObject("securityCamera");
 }
-ModelType Corridor = ModelType(glm::vec3(0.25, 0.25, 0.25), drawCorridorObject);
+
 
 void drawHalfCorridorObject(){
     glUniform1i(object_id_uniform, CORRIDOR);
@@ -139,7 +90,7 @@ void drawHalfCorridorObject(){
     DrawVirtualObject("box-side-1");
     DrawVirtualObject("box-side-2");
 }
-ModelType HalfCorridor = ModelType(glm::vec3(0.25, 0.25, 0.25), drawHalfCorridorObject);
+
 
 void drawWallObject(){
     glUniform1i(object_id_uniform, CORRIDOR);
@@ -147,23 +98,26 @@ void drawWallObject(){
     DrawVirtualObject("side-1");
     DrawVirtualObject("side-2");
 }
+
+ModelType Corridor = ModelType(glm::vec3(3, 3, 3), drawCorridorObject);
+ModelType HalfCorridor = ModelType(glm::vec3(0.25, 0.25, 0.25), drawHalfCorridorObject);
 ModelType Wall = ModelType(glm::vec3(0.25, 0.25, 0.25), drawWallObject);
 
 #define PI 3.1415
 #define HALF_PI PI / 2.0
 
 int g_InstanceSelectedId = 0;
-Instance instances[] =
+ModelInstance instances[] =
 {
-    Instance(&Corridor, glm::vec4(-0.571, -2.3, -17.442, 1.0), glm::vec3(HALF_PI, 0.0, 0.0)),
-    Instance(&Corridor, glm::vec4(-0.603, -2.3, -10.265, 1.0), glm::vec3(HALF_PI, 0.0, 0.0)),
-    Instance(&Corridor, glm::vec4(-10.01, -2.3, 3.63, 1.0), glm::vec3(HALF_PI, 0.0, -HALF_PI)),
-    Instance(&HalfCorridor, glm::vec4(3.84216, -2.3, 16.3634, 1.0), glm::vec3(HALF_PI, 0.0, PI)),
-    Instance(&Wall, glm::vec4(-13.267, -2.3, -0.37, 1.0), glm::vec3(HALF_PI, 0.0, 3.0 * HALF_PI)),
-    Instance(&Wall, glm::vec4(16.452, -2.3, 3.122, 1.0), glm::vec3(HALF_PI, 0.0, HALF_PI)),
-    Instance(&Wall, glm::vec4(3.434, -2.3, -13.424, 1.0), glm::vec3(HALF_PI, 0.0, 2.0 * PI)),
+    ModelInstance(&Corridor, glm::vec4(-0.571, -2.3, -17.442, 1.0), glm::vec3(0, 0.0, 0.0), glm::vec3(3.0, 3.0, 3.0)),
+    // ModelInstance(&Corridor, glm::vec4(-0.603, -2.3, -10.265, 1.0), glm::vec3(HALF_PI, 0.0, 0.0)),
+    // ModelInstance(&Corridor, glm::vec4(-10.01, -2.3, 3.63, 1.0), glm::vec3(HALF_PI, 0.0, -HALF_PI)),
+    // ModelInstance(&HalfCorridor, glm::vec4(3.84216, -2.3, 16.3634, 1.0), glm::vec3(HALF_PI, 0.0, PI)),
+    // ModelInstance(&Wall, glm::vec4(-13.267, -2.3, -0.37, 1.0), glm::vec3(HALF_PI, 0.0, 3.0 * HALF_PI)),
+    // ModelInstance(&Wall, glm::vec4(16.452, -2.3, 3.122, 1.0), glm::vec3(HALF_PI, 0.0, HALF_PI)),
+    // ModelInstance(&Wall, glm::vec4(3.434, -2.3, -13.424, 1.0), glm::vec3(HALF_PI, 0.0, 2.0 * PI)),
 };
-Instance* g_InstanceSelected = &instances[0];
+ModelInstance* g_InstanceSelected = &instances[0];
 int maxInstanceId = sizeof(instances)/sizeof(instances[0]) - 1;
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
@@ -183,11 +137,14 @@ bool g_MovingRight = false;
 bool g_MovingUp = false;
 bool g_MovingDown = false;
 
+bool g_EscapePressed = false;
 bool g_IsZPressed = false;
 bool g_IsXPressed = false;
 bool g_IsCPressed = false;
 bool g_ModShift = false;
 bool g_ModCtrl = false;
+
+bool isCursorDisabled = true;
 
 glm::vec4 g_Position = glm::vec4(-0.06f, 0.0f, 1.90f, 1.0f);
 glm::vec3 g_Rotation = glm::vec3(0.0f, 0.0f, 0.0f);
@@ -302,7 +259,7 @@ int main(int argc, char* argv[])
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     string path = "../../data/";
-    string modelsList[8] = {
+    string modelsList[9] = {
         "Link0.obj",
         "camera.obj",
         "king.obj",
@@ -310,9 +267,10 @@ int main(int argc, char* argv[])
         "box-side.obj",
         "floor.obj",
         "side.obj",
-        "box.obj"
+        "box.obj",
+        "corridor2.obj"
     };
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 9; i++)
     {
         ObjModel corridorModel((path + modelsList[i]).c_str());
         ComputeNormals(&corridorModel);
@@ -505,6 +463,13 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
         instances[i].object->drawObject();
     }
 
+    model = Matrix_Translate(-10, 0.42, -17.29)
+        * Matrix_Scale(0.5f, 0.5f, 0.5f)
+        * Matrix_Rotate_Z(M_PI_2);
+    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+    glUniform1i(object_id_uniform, CORRIDOR);
+    DrawVirtualObject("corridor2");
+
 }
 
 // Função que pega a matriz M e guarda a mesma no topo da pilha
@@ -597,31 +562,32 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
     // instante de tempo, e usamos esta movimentação para atualizar os
     // parâmetros que definem a posição da câmera dentro da cena virtual.
     // Assim, temos que o usuário consegue controlar a câmera.
+    if(!g_EscapePressed){
+        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
+        float dx = xpos - g_LastCursorPosX;
+        float dy = ypos - g_LastCursorPosY;
 
-    // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-    float dx = xpos - g_LastCursorPosX;
-    float dy = ypos - g_LastCursorPosY;
+        // Atualizamos parâmetros da câmera com os deslocamentos
+        g_PlayerCamera.theta -= 0.01f*dx;
+        g_PlayerCamera.phi   -= 0.01f*dy;
 
-    // Atualizamos parâmetros da câmera com os deslocamentos
-    g_PlayerCamera.theta -= 0.01f*dx;
-    g_PlayerCamera.phi   -= 0.01f*dy;
+        // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
+        float phimax = 3.141592f/2;
+        float phimin = -phimax;
 
-    // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
-    float phimax = 3.141592f/2;
-    float phimin = -phimax;
+        if (g_PlayerCamera.phi > phimax)
+            g_PlayerCamera.phi = phimax;
 
-    if (g_PlayerCamera.phi > phimax)
-        g_PlayerCamera.phi = phimax;
+        if (g_PlayerCamera.phi < phimin)
+            g_PlayerCamera.phi = phimin;
 
-    if (g_PlayerCamera.phi < phimin)
-        g_PlayerCamera.phi = phimin;
+        // Atualizamos as novas direções relativas
+        g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
+        g_CameraRelativeLeft /= norm(g_CameraRelativeLeft);
 
-    // Atualizamos as novas direções relativas
-    g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
-    g_CameraRelativeLeft /= norm(g_CameraRelativeLeft);
-
-    g_CameraRelativeForward = crossproduct(g_CameraRelativeLeft, UP_VECTOR);
-    g_CameraRelativeForward /= norm(g_CameraRelativeForward);
+        g_CameraRelativeForward = crossproduct(g_CameraRelativeLeft, UP_VECTOR);
+        g_CameraRelativeForward /= norm(g_CameraRelativeForward);
+    }
 
     // Atualizamos as variáveis globais para armazenar a posição atual do
     // cursor como sendo a última posição conhecida do cursor.
@@ -677,9 +643,18 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
             std::exit(100 + i);
     // ==============
 
-    // Se o usuário pressionar a tecla ESC, fechamos a janela.
-    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, GL_TRUE);
+    // Se o usuário pressionar a tecla ESC, mostramos o mouse.
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS){
+        g_EscapePressed = !g_EscapePressed;
+        if(isCursorDisabled) {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+            isCursorDisabled = false;
+        }
+        else {
+            glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+            isCursorDisabled = true;
+        }
+    }
 
     if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
         g_InstanceSelectedId--;
