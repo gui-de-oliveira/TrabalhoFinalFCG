@@ -94,8 +94,8 @@ Camera::Camera (float _x, float _y, float _z, float _phi, float _theta) {
 // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 glm::vec4 UP_VECTOR = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
-Camera g_FixedCamera(-5.07, 1.69, -21.35, -0.24, 6.28);
-Camera g_PlayerCamera(-4.82, 0.42, -17.29, 0.20, 3.10);
+Camera g_FixedCamera(-1.21, 0.62, 3.98, -0.22, 7.80);
+Camera g_PlayerCamera(-0.08, 0.02, -0.15, -0.10, 6.47);
 
 glm::vec4 g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
 glm::vec4 g_CameraRelativeForward =  crossproduct(g_CameraRelativeLeft, UP_VECTOR);
@@ -109,7 +109,7 @@ bool g_MovingDown = false;
 
 bool g_ModShift = false;
 
-glm::vec4 g_Position = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+glm::vec4 g_Position = glm::vec4(-0.06f, 0.0f, 1.90f, 1.0f);
 
 // Pilha que guardará as matrizes de modelagem.
 std::stack<glm::mat4>  g_MatrixStack;
@@ -220,22 +220,6 @@ int main(int argc, char* argv[])
     LoadShadersFromFiles();
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel spheremodel("../../data/sphere.obj");
-    ComputeNormals(&spheremodel);
-    BuildTrianglesAndAddToVirtualScene(&spheremodel);
-
-    ObjModel bunnymodel("../../data/bunny.obj");
-    ComputeNormals(&bunnymodel);
-    BuildTrianglesAndAddToVirtualScene(&bunnymodel);
-
-    ObjModel planemodel("../../data/plane.obj");
-    ComputeNormals(&planemodel);
-    BuildTrianglesAndAddToVirtualScene(&planemodel);
-
-    ObjModel mansionModel("../../data/hallway.obj");
-    ComputeNormals(&mansionModel);
-    BuildTrianglesAndAddToVirtualScene(&mansionModel);
-
     ObjModel linkModel("../../data/Link0.obj");
     ComputeNormals(&linkModel);
     BuildTrianglesAndAddToVirtualScene(&linkModel);
@@ -306,6 +290,16 @@ int main(int argc, char* argv[])
         if(g_MovingRight) g_PlayerCamera.position -= speed * delta * g_CameraRelativeLeft;
         if(g_MovingUp) g_PlayerCamera.position += speed * delta * UP_VECTOR;
         if(g_MovingDown) g_PlayerCamera.position -= speed * delta * UP_VECTOR;
+
+        if(g_RightMouseButtonPressed)
+        {
+            if(g_MovingForward) g_Position += speed * delta * g_CameraRelativeForward;
+            if(g_MovingBackward) g_Position -= speed * delta * g_CameraRelativeForward;
+            if(g_MovingLeft) g_Position += speed * delta * g_CameraRelativeLeft;
+            if(g_MovingRight) g_Position -= speed * delta * g_CameraRelativeLeft;
+            if(g_MovingUp) g_Position += speed * delta * UP_VECTOR;
+            if(g_MovingDown) g_Position -= speed * delta * UP_VECTOR;
+        }
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -383,7 +377,8 @@ int main(int argc, char* argv[])
 #define LINK  3
 #define CORRIDOR 4
 
-void DrawWorld(bool drawPlayer, bool drawCamera){
+void DrawWorld(bool drawPlayer, bool drawCamera)
+{
     glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
 
     if (drawPlayer) {
@@ -398,8 +393,6 @@ void DrawWorld(bool drawPlayer, bool drawCamera){
         DrawVirtualObject("link_model_0");
     }
 
-
-
     if (drawCamera) {
         model = Matrix_Translate(g_FixedCamera.position.x, g_FixedCamera.position.y, g_FixedCamera.position.z)
             // * Matrix_Translate(g_FixedCamera.position)
@@ -411,68 +404,21 @@ void DrawWorld(bool drawPlayer, bool drawCamera){
 
         DrawVirtualObject("camera_reference");
     }
-    // Desenhamos a fortaleza
-    model = Matrix_Translate(0.0f, 0.0f, 0.0f)
-        * Matrix_Scale(1.0f, 1.0f, 1.0f);
-    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-    glUniform1i(object_id_uniform, PLANE);
-
-    DrawVirtualObject("part8_texture6");
-    DrawVirtualObject("part0_texture11");
-    DrawVirtualObject("part12_texture10");
-    DrawVirtualObject("part2_texture13");
-    DrawVirtualObject("part5_texture3");
-    DrawVirtualObject("part6_texture4");
-    DrawVirtualObject("part10_texture8");
-    DrawVirtualObject("part3_texture14");
-    DrawVirtualObject("part11_texture9");
-    DrawVirtualObject("part7_texture5");
-    DrawVirtualObject("part9_texture7");
-    DrawVirtualObject("part2_texture1");
-    DrawVirtualObject("part1_texture0");
-    DrawVirtualObject("part0_texture0");
-    DrawVirtualObject("part0_texture11.001");
-
-    // Desenhamos a fortaleza
-    model = Matrix_Translate(g_Position.x, g_Position.y, g_Position.z)
-        * Matrix_Translate(-9.72, 0.0, -34.46)
-        * Matrix_Scale(1.0f, 1.0f, 1.0f)
-        * Matrix_Rotate_Y(3.141592);
-    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-
-    DrawVirtualObject("part8_texture6");
-    DrawVirtualObject("part0_texture11");
-    DrawVirtualObject("part12_texture10");
-    DrawVirtualObject("part2_texture13");
-    DrawVirtualObject("part5_texture3");
-    DrawVirtualObject("part6_texture4");
-    DrawVirtualObject("part10_texture8");
-    DrawVirtualObject("part3_texture14");
-    DrawVirtualObject("part11_texture9");
-    DrawVirtualObject("part7_texture5");
-    DrawVirtualObject("part9_texture7");
-    DrawVirtualObject("part2_texture1");
-    DrawVirtualObject("part1_texture0");
-    DrawVirtualObject("part0_texture0");
-    DrawVirtualObject("part0_texture11.001");
 
     model = Matrix_Translate(-4.82, 0.42, -17.29)
         * Matrix_Scale(0.5f, 0.5f, 0.5f);
 
     glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
     glUniform1i(object_id_uniform, LINK);
-
     DrawVirtualObject("demyx");
 
-    model = Matrix_Translate(0.0f, 0.42, 0.0f)
-        * Matrix_Scale(2.5f, 2.5f, 2.5f);
+    model = Matrix_Translate(g_Position.x, g_Position.y, g_Position.z)
+        * Matrix_Scale(0.25f, 0.25, 0.25);
 
     glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
     glUniform1i(object_id_uniform, CORRIDOR);
     DrawVirtualObject("corridor");
-
-
-    }
+}
 
 // Função que pega a matriz M e guarda a mesma no topo da pilha
 void PushMatrix(glm::mat4 M)
@@ -757,7 +703,6 @@ void TextRendering_PrintCameraStats(GLFWwindow* window)
 
     snprintf(buffer, 80, "Camera position = X: (%.2f), Y: (%.2f), Z: (%.2f)\n", g_PlayerCamera.position.x, g_PlayerCamera.position.y, g_PlayerCamera.position.z);
     TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f, 1.0f);
-
 }
 
 void TextRendering_PrintMoveStats(GLFWwindow* window, glm::vec4 position)
