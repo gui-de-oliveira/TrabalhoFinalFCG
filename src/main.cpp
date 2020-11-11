@@ -50,11 +50,8 @@ void PopMatrix(glm::mat4& M);
 
 // Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
 // outras informações do programa. Definidas após main().
-void TextRendering_ShowModelViewProjection(GLFWwindow* window, glm::mat4 projection, glm::mat4 view, glm::mat4 model, glm::vec4 p_model);
-void TextRendering_PrintCameraStats(GLFWwindow* window);
-void TextRendering_ShowMode(GLFWwindow* window, string mode);
 void TextRendering_ShowFramesPerSecond(GLFWwindow* window);
-void TextRendering_PrintMoveStats(GLFWwindow* window, glm::vec4 position);
+void PrintStringTopLeft(GLFWwindow* window, string text);
 
 // Funções callback para comunicação com o sistema operacional e interação do
 // usuário. Veja mais comentários nas definições das mesmas, abaixo.
@@ -94,8 +91,8 @@ Camera::Camera (float _x, float _y, float _z, float _phi, float _theta) {
 // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 glm::vec4 UP_VECTOR = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
-Camera g_FixedCamera(-1.21, 0.62, 3.98, -0.22, 7.80);
-Camera g_PlayerCamera(-0.08, 0.02, -0.15, -0.10, 6.47);
+Camera g_FixedCamera(-0.51, 0.32, 1.14, -0.24, 7.90);
+Camera g_PlayerCamera(-0.08, 0.12, -0.15, -0.10, 6.47);
 
 glm::vec4 g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
 glm::vec4 g_CameraRelativeForward =  crossproduct(g_CameraRelativeLeft, UP_VECTOR);
@@ -254,12 +251,6 @@ int main(int argc, char* argv[])
     // glCullFace(GL_BACK);
     // glFrontFace(GL_CCW);
 
-    // Variáveis auxiliares utilizadas para chamada à função
-    // TextRendering_ShowModelViewProjection(), armazenando matrizes 4x4.
-    glm::mat4 the_projection;
-    glm::mat4 the_model;
-    glm::mat4 the_view;
-
     float lastTime = glfwGetTime();
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
@@ -336,19 +327,23 @@ int main(int argc, char* argv[])
 
         glViewport(0, 0, g_Width, g_Height);
 
-        TextRendering_ShowMode(window, g_Mode);
-        if(g_Mode.compare("PLAYER") == 0){
-            TextRendering_PrintCameraStats(window);
-        }
-
-        if(g_Mode.compare("MOVE") == 0){
-            TextRendering_PrintMoveStats(window, g_Position);
-        }
-
         // Imprimimos na tela informação sobre o número de quadros renderizados
         // por segundo (frames per second).
         TextRendering_ShowFramesPerSecond(window);
 
+        std::stringstream fmt;
+
+        if (g_Mode.compare("PLAYER") == 0) {
+            fmt << "PlayerCamera Stats"<< endl;
+            fmt << "Phi: " << g_PlayerCamera.phi << " Theta:" << g_PlayerCamera.theta << endl;
+            fmt << "X: " << g_PlayerCamera.position.x << " Y:" << g_PlayerCamera.position.y << " Z:" << g_PlayerCamera.position.z << endl;
+        } else if (g_Mode.compare("MOVE") == 0) {
+            fmt << "ObjectPosition Stats"<< endl;
+            fmt << "X: " << g_Position.x << " Y:" << g_Position.y << " Z:" << g_Position.z << endl;
+        }
+
+        PrintStringTopLeft(window, fmt.str());
+        
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
         // seria possível ver artefatos conhecidos como "screen tearing". A
@@ -384,6 +379,7 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
     if (drawPlayer) {
         // Desenhamos o player
         model = Matrix_Translate(g_PlayerCamera.position.x, g_PlayerCamera.position.y, g_PlayerCamera.position.z)
+            * Matrix_Translate(0.0, -0.5, 0.0)
             * Matrix_Scale(0.5f, 0.5f, 0.5f)
             * Matrix_Rotate_Y(g_PlayerCamera.theta)
             * Matrix_Rotate_X(-g_PlayerCamera.phi * 0.5);
@@ -398,7 +394,7 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
             // * Matrix_Translate(g_FixedCamera.position)
             * Matrix_Rotate_Y(g_FixedCamera.theta)
             * Matrix_Rotate_X(g_FixedCamera.phi + 3.141592 * 0.25)
-            * Matrix_Scale(0.05, 0.05, 0.05);
+            * Matrix_Scale(0.01, 0.01, 0.01);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, PLANE);
 
@@ -628,106 +624,23 @@ void ErrorCallback(int error, const char* description)
     fprintf(stderr, "ERROR: GLFW: %s\n", description);
 }
 
-// Esta função recebe um vértice com coordenadas de modelo p_model e passa o
-// mesmo por todos os sistemas de coordenadas armazenados nas matrizes model,
-// view, e projection; e escreve na tela as matrizes e pontos resultantes
-// dessas transformações.
-void TextRendering_ShowModelViewProjection(
-    GLFWwindow* window,
-    glm::mat4 projection,
-    glm::mat4 view,
-    glm::mat4 model,
-    glm::vec4 p_model
-)
+void PrintStringTopLeft(GLFWwindow* window, string text)
 {
-    if ( !g_ShowInfoText )
-        return;
-
-    glm::vec4 p_world = model*p_model;
-    glm::vec4 p_camera = view*p_world;
-    glm::vec4 p_clip = projection*p_camera;
-    glm::vec4 p_ndc = p_clip / p_clip.w;
-
     float pad = TextRendering_LineHeight(window);
 
-    TextRendering_PrintString(window, " Model matrix             Model     In World Coords.", -1.0f, 1.0f-pad, 1.0f);
-    TextRendering_PrintMatrixVectorProduct(window, model, p_model, -1.0f, 1.0f-2*pad, 1.0f);
+    char buffer[200];
+    int lineCount = 0;
+    std::string::size_type lastTokenPos = 0;
+    std::string::size_type nextTokenPos = 0;
+    while(nextTokenPos != std::string::npos)
+    {
+        lineCount += 1;
+        lastTokenPos = nextTokenPos;
+        nextTokenPos = text.find_first_of("\n", lastTokenPos + 1);
 
-    TextRendering_PrintString(window, "                                        |  ", -1.0f, 1.0f-6*pad, 1.0f);
-    TextRendering_PrintString(window, "                            .-----------'  ", -1.0f, 1.0f-7*pad, 1.0f);
-    TextRendering_PrintString(window, "                            V              ", -1.0f, 1.0f-8*pad, 1.0f);
-
-    TextRendering_PrintString(window, " View matrix              World     In Camera Coords.", -1.0f, 1.0f-9*pad, 1.0f);
-    TextRendering_PrintMatrixVectorProduct(window, view, p_world, -1.0f, 1.0f-10*pad, 1.0f);
-
-    TextRendering_PrintString(window, "                                        |  ", -1.0f, 1.0f-14*pad, 1.0f);
-    TextRendering_PrintString(window, "                            .-----------'  ", -1.0f, 1.0f-15*pad, 1.0f);
-    TextRendering_PrintString(window, "                            V              ", -1.0f, 1.0f-16*pad, 1.0f);
-
-    TextRendering_PrintString(window, " Projection matrix        Camera                    In NDC", -1.0f, 1.0f-17*pad, 1.0f);
-    TextRendering_PrintMatrixVectorProductDivW(window, projection, p_camera, -1.0f, 1.0f-18*pad, 1.0f);
-
-    int width, height;
-    glfwGetFramebufferSize(window, &width, &height);
-
-    glm::vec2 a = glm::vec2(-1, -1);
-    glm::vec2 b = glm::vec2(+1, +1);
-    glm::vec2 p = glm::vec2( 0,  0);
-    glm::vec2 q = glm::vec2(width, height);
-
-    glm::mat4 viewport_mapping = Matrix(
-        (q.x - p.x)/(b.x-a.x), 0.0f, 0.0f, (b.x*p.x - a.x*q.x)/(b.x-a.x),
-        0.0f, (q.y - p.y)/(b.y-a.y), 0.0f, (b.y*p.y - a.y*q.y)/(b.y-a.y),
-        0.0f , 0.0f , 1.0f , 0.0f ,
-        0.0f , 0.0f , 0.0f , 1.0f
-    );
-
-    TextRendering_PrintString(window, "                                                       |  ", -1.0f, 1.0f-22*pad, 1.0f);
-    TextRendering_PrintString(window, "                            .--------------------------'  ", -1.0f, 1.0f-23*pad, 1.0f);
-    TextRendering_PrintString(window, "                            V                           ", -1.0f, 1.0f-24*pad, 1.0f);
-
-    TextRendering_PrintString(window, " Viewport matrix           NDC      In Pixel Coords.", -1.0f, 1.0f-25*pad, 1.0f);
-    TextRendering_PrintMatrixVectorProductMoreDigits(window, viewport_mapping, p_ndc, -1.0f, 1.0f-26*pad, 1.0f);
-}
-
-void TextRendering_PrintCameraStats(GLFWwindow* window)
-{
-    if ( !g_ShowInfoText )
-        return;
-
-    float pad = TextRendering_LineHeight(window);
-
-    char buffer[80];
-    snprintf(buffer, 80, "Camera Direction = Phi: (%.2f), Theta: (%.2f)\n", g_PlayerCamera.phi, g_PlayerCamera.theta);
-    TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f+pad, 1.0f);
-
-    snprintf(buffer, 80, "Camera position = X: (%.2f), Y: (%.2f), Z: (%.2f)\n", g_PlayerCamera.position.x, g_PlayerCamera.position.y, g_PlayerCamera.position.z);
-    TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f, 1.0f);
-}
-
-void TextRendering_PrintMoveStats(GLFWwindow* window, glm::vec4 position)
-{
-    if ( !g_ShowInfoText )
-        return;
-
-    float pad = TextRendering_LineHeight(window);
-
-    char buffer[80];
-
-    snprintf(buffer, 80, "Camera position = X: (%.2f), Y: (%.2f), Z: (%.2f)\n", position.x, position.y, position.z);
-    TextRendering_PrintString(window, buffer, -1.0f+pad/10, -1.0f, 1.0f);
-}
-
-// Escrevemos na tela qual matriz de projeção está sendo utilizada.
-void TextRendering_ShowMode(GLFWwindow* window, string mode)
-{
-    if ( !g_ShowInfoText )
-        return;
-
-    float lineheight = TextRendering_LineHeight(window);
-    float charwidth = TextRendering_CharWidth(window);
-
-    TextRendering_PrintString(window, mode, 1.0f-strlen(mode.c_str())*charwidth, -1.0f+2*lineheight/10, 1.0f);
+        snprintf(buffer, 200, text.substr(lastTokenPos, nextTokenPos - lastTokenPos).c_str());
+        TextRendering_PrintString(window, buffer, -1.0f+pad/10, 1.0 - lineCount * pad, 1.0f);
+    }
 }
 
 // Escrevemos na tela o número de quadros renderizados por segundo (frames per
