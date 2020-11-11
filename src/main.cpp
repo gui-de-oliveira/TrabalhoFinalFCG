@@ -94,7 +94,7 @@ Camera::Camera (float _x, float _y, float _z, float _phi, float _theta) {
 // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 glm::vec4 UP_VECTOR = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
-Camera g_FixedCamera(-4.87, 1.82, -21.42, -0.51, 0.06);
+Camera g_FixedCamera(-5.07, 1.69, -21.35, -0.24, 6.28);
 Camera g_PlayerCamera(-4.82, 0.42, -17.29, 0.20, 3.10);
 
 glm::vec4 g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
