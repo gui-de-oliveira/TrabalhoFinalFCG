@@ -28,7 +28,10 @@ class ModelInstance
 
     ModelInstance(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation, glm::vec3 _scale) {
         scale = _scale;
-        ModelInstance(_object, _position, _rotation);
+        position = _position;
+        rotation = _rotation;
+        object = _object;
+        //ModelInstance(_object, _position, _rotation);
     }
 
     ModelInstance(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation) {

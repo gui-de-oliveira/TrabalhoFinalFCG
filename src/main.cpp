@@ -99,7 +99,7 @@ void drawWallObject(){
     DrawVirtualObject("side-2");
 }
 
-ModelType Corridor = ModelType(glm::vec3(3, 3, 3), drawCorridorObject);
+ModelType Corridor = ModelType(glm::vec3(10.0,10.0,10.0), drawCorridorObject);
 ModelType HalfCorridor = ModelType(glm::vec3(0.25, 0.25, 0.25), drawHalfCorridorObject);
 ModelType Wall = ModelType(glm::vec3(0.25, 0.25, 0.25), drawWallObject);
 
@@ -109,7 +109,7 @@ ModelType Wall = ModelType(glm::vec3(0.25, 0.25, 0.25), drawWallObject);
 int g_InstanceSelectedId = 0;
 ModelInstance instances[] =
 {
-    ModelInstance(&Corridor, glm::vec4(-0.571, -2.3, -17.442, 1.0), glm::vec3(0, 0.0, 0.0), glm::vec3(3.0, 3.0, 3.0)),
+    ModelInstance(&Corridor, glm::vec4(-0.571, -2.3, -10.442, 1.0), glm::vec3(0.0, 0.0, 0.0))
     // ModelInstance(&Corridor, glm::vec4(-0.603, -2.3, -10.265, 1.0), glm::vec3(HALF_PI, 0.0, 0.0)),
     // ModelInstance(&Corridor, glm::vec4(-10.01, -2.3, 3.63, 1.0), glm::vec3(HALF_PI, 0.0, -HALF_PI)),
     // ModelInstance(&HalfCorridor, glm::vec4(3.84216, -2.3, 16.3634, 1.0), glm::vec3(HALF_PI, 0.0, PI)),
