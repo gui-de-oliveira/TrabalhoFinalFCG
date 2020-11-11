@@ -128,7 +128,6 @@ float g_AngleZ = 0.0f;
 
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado no momento atual. Veja função MouseButtonCallback().
-bool g_LeftMouseButtonPressed = false;
 bool g_RightMouseButtonPressed = false; // Análogo para botão direito do mouse
 bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mouse
 
@@ -539,22 +538,6 @@ double g_LastCursorPosX, g_LastCursorPosY;
 // Função callback chamada sempre que o usuário aperta algum dos botões do mouse
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
-    {
-        // Se o usuário pressionou o botão esquerdo do mouse, guardamos a
-        // posição atual do cursor nas variáveis g_LastCursorPosX e
-        // g_LastCursorPosY.  Também, setamos a variável
-        // g_LeftMouseButtonPressed como true, para saber que o usuário está
-        // com o botão esquerdo pressionado.
-        glfwGetCursorPos(window, &g_LastCursorPosX, &g_LastCursorPosY);
-        g_LeftMouseButtonPressed = true;
-    }
-    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE)
-    {
-        // Quando o usuário soltar o botão esquerdo do mouse, atualizamos a
-        // variável abaixo para false.
-        g_LeftMouseButtonPressed = true;
-    }
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {
         // Se o usuário pressionou o botão esquerdo do mouse, guardamos a
@@ -565,6 +548,7 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         glfwGetCursorPos(window, &g_LastCursorPosX, &g_LastCursorPosY);
         g_RightMouseButtonPressed = true;
     }
+
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_RELEASE)
     {
         // Quando o usuário soltar o botão esquerdo do mouse, atualizamos a
@@ -599,38 +583,35 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
     // parâmetros que definem a posição da câmera dentro da cena virtual.
     // Assim, temos que o usuário consegue controlar a câmera.
 
-    if (g_LeftMouseButtonPressed)
-    {
-        // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
-        float dx = xpos - g_LastCursorPosX;
-        float dy = ypos - g_LastCursorPosY;
+    // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
+    float dx = xpos - g_LastCursorPosX;
+    float dy = ypos - g_LastCursorPosY;
 
-        // Atualizamos parâmetros da câmera com os deslocamentos
-        g_PlayerCamera.theta -= 0.01f*dx;
-        g_PlayerCamera.phi   -= 0.01f*dy;
+    // Atualizamos parâmetros da câmera com os deslocamentos
+    g_PlayerCamera.theta -= 0.01f*dx;
+    g_PlayerCamera.phi   -= 0.01f*dy;
 
-        // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
-        float phimax = 3.141592f/2;
-        float phimin = -phimax;
+    // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
+    float phimax = 3.141592f/2;
+    float phimin = -phimax;
 
-        if (g_PlayerCamera.phi > phimax)
-            g_PlayerCamera.phi = phimax;
+    if (g_PlayerCamera.phi > phimax)
+        g_PlayerCamera.phi = phimax;
 
-        if (g_PlayerCamera.phi < phimin)
-            g_PlayerCamera.phi = phimin;
+    if (g_PlayerCamera.phi < phimin)
+        g_PlayerCamera.phi = phimin;
 
-        // Atualizamos as novas direções relativas
-        g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
-        g_CameraRelativeLeft /= norm(g_CameraRelativeLeft);
+    // Atualizamos as novas direções relativas
+    g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
+    g_CameraRelativeLeft /= norm(g_CameraRelativeLeft);
 
-        g_CameraRelativeForward = crossproduct(g_CameraRelativeLeft, UP_VECTOR);
-        g_CameraRelativeForward /= norm(g_CameraRelativeForward);
+    g_CameraRelativeForward = crossproduct(g_CameraRelativeLeft, UP_VECTOR);
+    g_CameraRelativeForward /= norm(g_CameraRelativeForward);
 
-        // Atualizamos as variáveis globais para armazenar a posição atual do
-        // cursor como sendo a última posição conhecida do cursor.
-        g_LastCursorPosX = xpos;
-        g_LastCursorPosY = ypos;
-    }
+    // Atualizamos as variáveis globais para armazenar a posição atual do
+    // cursor como sendo a última posição conhecida do cursor.
+    g_LastCursorPosX = xpos;
+    g_LastCursorPosY = ypos;
 
     if (g_RightMouseButtonPressed)
     {
