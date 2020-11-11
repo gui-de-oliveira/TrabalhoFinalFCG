@@ -29,6 +29,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <algorithm>
+#include <iostream>
 
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
@@ -87,12 +88,90 @@ Camera::Camera (float _x, float _y, float _z, float _phi, float _theta) {
     theta = _theta;
 }
 
+class ModelType
+{
+    public:
+    void (*drawObject)();
+    glm::vec3 scale = glm::vec3(1.0, 1.0, 1.0);
+
+    ModelType(glm::vec3 _scale, void (*_drawObject)()) {
+        scale = _scale;
+        drawObject = _drawObject;
+    }
+};
+class Instance
+{
+    public:
+    glm::vec4 position;
+    glm::vec3 rotation;
+    glm::vec3 scale = glm::vec3(1.0, 1.0, 1.0);
+    ModelType* object;
+
+    Instance(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation, glm::vec3 _scale) {
+        scale = _scale;
+        Instance(_object, _position, _rotation);
+    }
+
+    Instance(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation) {
+        position = _position;
+        rotation = _rotation;
+        object = _object;
+    }
+};
+
+#define SPHERE 0
+#define BUNNY  1
+#define PLANE  2
+#define LINK  3
+#define CORRIDOR 4
+
+void drawCorridorObject(){
+    glUniform1i(object_id_uniform, CORRIDOR);
+    DrawVirtualObject("box-0");
+    DrawVirtualObject("box-1");
+    DrawVirtualObject("box-2");
+}
+ModelType Corridor = ModelType(glm::vec3(0.25, 0.25, 0.25), drawCorridorObject);
+
+void drawHalfCorridorObject(){
+    glUniform1i(object_id_uniform, CORRIDOR);
+    DrawVirtualObject("box-side-0");
+    DrawVirtualObject("box-side-1");
+    DrawVirtualObject("box-side-2");
+}
+ModelType HalfCorridor = ModelType(glm::vec3(0.25, 0.25, 0.25), drawHalfCorridorObject);
+
+void drawWallObject(){
+    glUniform1i(object_id_uniform, CORRIDOR);
+    DrawVirtualObject("side-0");
+    DrawVirtualObject("side-1");
+    DrawVirtualObject("side-2");
+}
+ModelType Wall = ModelType(glm::vec3(0.25, 0.25, 0.25), drawWallObject);
+
+#define PI 3.1415
+#define HALF_PI PI / 2.0
+
+int g_InstanceSelectedId = 0;
+Instance instances[] =
+{
+    Instance(&Corridor, glm::vec4(-0.571, -2.3, -17.442, 1.0), glm::vec3(HALF_PI, 0.0, 0.0)),
+    Instance(&Corridor, glm::vec4(-0.603, -2.3, -10.265, 1.0), glm::vec3(HALF_PI, 0.0, 0.0)),
+    Instance(&Corridor, glm::vec4(-10.01, -2.3, 3.63, 1.0), glm::vec3(HALF_PI, 0.0, -HALF_PI)),
+    Instance(&HalfCorridor, glm::vec4(3.84216, -2.3, 16.3634, 1.0), glm::vec3(HALF_PI, 0.0, PI)),
+    Instance(&Wall, glm::vec4(-13.267, -2.3, -0.37, 1.0), glm::vec3(HALF_PI, 0.0, 3.0 * HALF_PI)),
+    Instance(&Wall, glm::vec4(16.452, -2.3, 3.122, 1.0), glm::vec3(HALF_PI, 0.0, HALF_PI)),
+    Instance(&Wall, glm::vec4(3.434, -2.3, -13.424, 1.0), glm::vec3(HALF_PI, 0.0, 2.0 * PI)),
+};
+Instance* g_InstanceSelected = &instances[0];
+int maxInstanceId = sizeof(instances)/sizeof(instances[0]) - 1;
+
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 glm::vec4 UP_VECTOR = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
-Camera g_FixedCamera(-0.51, 0.32, 1.14, -0.24, 7.90);
-Camera g_PlayerCamera(-0.08, 0.12, -0.15, -0.10, 6.47);
+Camera g_FixedCamera(0.103, -0.614, 1.49, -0.26, 14.12);
+Camera g_PlayerCamera(1.996, -1.748, -3.174, 0.0, 12.42);
 
 glm::vec4 g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
 glm::vec4 g_CameraRelativeForward =  crossproduct(g_CameraRelativeLeft, UP_VECTOR);
@@ -104,9 +183,14 @@ bool g_MovingRight = false;
 bool g_MovingUp = false;
 bool g_MovingDown = false;
 
+bool g_IsZPressed = false;
+bool g_IsXPressed = false;
+bool g_IsCPressed = false;
 bool g_ModShift = false;
+bool g_ModCtrl = false;
 
 glm::vec4 g_Position = glm::vec4(-0.06f, 0.0f, 1.90f, 1.0f);
+glm::vec3 g_Rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
 // Pilha que guardará as matrizes de modelagem.
 std::stack<glm::mat4>  g_MatrixStack;
@@ -186,7 +270,7 @@ int main(int argc, char* argv[])
     glfwSetMouseButtonCallback(window, MouseButtonCallback);
     // ... ou movimentar o cursor do mouse em cima da janela
     glfwSetCursorPosCallback(window, CursorPosCallback);
-    
+
     // Capturamos o cursor no centro da tela e o dexamos escondido
     glfwSetInputMode(window,GLFW_CURSOR,GLFW_CURSOR_DISABLED);
 
@@ -217,21 +301,23 @@ int main(int argc, char* argv[])
     LoadShadersFromFiles();
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
-    ObjModel linkModel("../../data/Link0.obj");
-    ComputeNormals(&linkModel);
-    BuildTrianglesAndAddToVirtualScene(&linkModel);
-
-    ObjModel cameraModel("../../data/camera.obj");
-    ComputeNormals(&cameraModel);
-    BuildTrianglesAndAddToVirtualScene(&cameraModel);
-
-    ObjModel kingModel("../../data/king.obj");
-    ComputeNormals(&kingModel);
-    BuildTrianglesAndAddToVirtualScene(&kingModel);
-
-    ObjModel corridorModel("../../data/corridor.obj");
-    ComputeNormals(&corridorModel);
-    BuildTrianglesAndAddToVirtualScene(&corridorModel);
+    string path = "../../data/";
+    string modelsList[8] = {
+        "Link0.obj",
+        "camera.obj",
+        "king.obj",
+        "corridor.obj",
+        "box-side.obj",
+        "floor.obj",
+        "side.obj",
+        "box.obj"
+    };
+    for(int i = 0; i < 8; i++)
+    {
+        ObjModel corridorModel((path + modelsList[i]).c_str());
+        ComputeNormals(&corridorModel);
+        BuildTrianglesAndAddToVirtualScene(&corridorModel);
+    }
 
     if ( argc > 1 )
     {
@@ -257,7 +343,7 @@ int main(int argc, char* argv[])
     {
         float delta = glfwGetTime() - lastTime;
         lastTime = glfwGetTime();
-        
+
         // Indicamos que queremos renderizar em toda região do framebuffer. A
         // função "glViewport" define o mapeamento das "normalized device
         // coordinates" (NDC) para "pixel coordinates".  Essa é a operação de
@@ -272,9 +358,9 @@ int main(int argc, char* argv[])
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(program_id);
-        
+
         // Movimentamos o personagem se alguma tecla estiver pressionada
-        float speed = 2.0f;
+        float speed = 2.0f * (g_ModShift ? 10.0 : 1.0) * (g_ModCtrl ? 0.1 : 1.0);
         if(g_MovingForward) g_PlayerCamera.position += speed * delta * g_CameraRelativeForward;
         if(g_MovingBackward) g_PlayerCamera.position -= speed * delta * g_CameraRelativeForward;
         if(g_MovingLeft) g_PlayerCamera.position += speed * delta * g_CameraRelativeLeft;
@@ -284,13 +370,17 @@ int main(int argc, char* argv[])
 
         if(g_RightMouseButtonPressed)
         {
-            if(g_MovingForward) g_Position += speed * delta * g_CameraRelativeForward;
-            if(g_MovingBackward) g_Position -= speed * delta * g_CameraRelativeForward;
-            if(g_MovingLeft) g_Position += speed * delta * g_CameraRelativeLeft;
-            if(g_MovingRight) g_Position -= speed * delta * g_CameraRelativeLeft;
-            if(g_MovingUp) g_Position += speed * delta * UP_VECTOR;
-            if(g_MovingDown) g_Position -= speed * delta * UP_VECTOR;
+            if(g_MovingForward) g_InstanceSelected->position += speed * delta * g_CameraRelativeForward;
+            if(g_MovingBackward) g_InstanceSelected->position -= speed * delta * g_CameraRelativeForward;
+            if(g_MovingLeft) g_InstanceSelected->position += speed * delta * g_CameraRelativeLeft;
+            if(g_MovingRight) g_InstanceSelected->position -= speed * delta * g_CameraRelativeLeft;
+            if(g_MovingUp) g_InstanceSelected->position += speed * delta * UP_VECTOR;
+            if(g_MovingDown) g_InstanceSelected->position -= speed * delta * UP_VECTOR;
         }
+
+        if(g_IsZPressed) g_InstanceSelected->rotation.x += delta * (g_ModShift ? -1 : 1);
+        if(g_IsXPressed) g_InstanceSelected->rotation.y += delta * (g_ModShift ? -1 : 1);
+        if(g_IsCPressed) g_InstanceSelected->rotation.z += delta * (g_ModShift ? -1 : 1);
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -338,12 +428,14 @@ int main(int argc, char* argv[])
             fmt << "Phi: " << g_PlayerCamera.phi << " Theta:" << g_PlayerCamera.theta << endl;
             fmt << "X: " << g_PlayerCamera.position.x << " Y:" << g_PlayerCamera.position.y << " Z:" << g_PlayerCamera.position.z << endl;
         } else if (g_Mode.compare("MOVE") == 0) {
-            fmt << "ObjectPosition Stats"<< endl;
-            fmt << "X: " << g_Position.x << " Y:" << g_Position.y << " Z:" << g_Position.z << endl;
+            fmt << "Instance Stats"<< endl;
+            fmt << "ObjectId: " << g_InstanceSelectedId << endl;
+            fmt << "Position X: " << g_InstanceSelected->position.x << " Y:" << g_InstanceSelected->position.y << " Z:" << g_InstanceSelected->position.z << endl;
+            fmt << "Rotation X: " << g_InstanceSelected->rotation.x << " Y:" << g_InstanceSelected->rotation.y << " Z:" << g_InstanceSelected->rotation.z << endl;
         }
 
         PrintStringTopLeft(window, fmt.str());
-        
+
         // O framebuffer onde OpenGL executa as operações de renderização não
         // é o mesmo que está sendo mostrado para o usuário, caso contrário
         // seria possível ver artefatos conhecidos como "screen tearing". A
@@ -365,12 +457,6 @@ int main(int argc, char* argv[])
     // Fim do programa
     return 0;
 }
-
-#define SPHERE 0
-#define BUNNY  1
-#define PLANE  2
-#define LINK  3
-#define CORRIDOR 4
 
 void DrawWorld(bool drawPlayer, bool drawCamera)
 {
@@ -408,12 +494,17 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
     glUniform1i(object_id_uniform, LINK);
     DrawVirtualObject("demyx");
 
-    model = Matrix_Translate(g_Position.x, g_Position.y, g_Position.z)
-        * Matrix_Scale(0.25f, 0.25, 0.25);
+    for(int i = 0; i < maxInstanceId + 1; i++) {
+        model = Matrix_Translate(instances[i].position.x, instances[i].position.y, instances[i].position.z)
+            * Matrix_Rotate_X(instances[i].rotation.x)
+            * Matrix_Rotate_Y(instances[i].rotation.y)
+            * Matrix_Rotate_Z(instances[i].rotation.z)
+            * Matrix_Scale(0.25f, 0.25, 0.25);
 
-    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-    glUniform1i(object_id_uniform, CORRIDOR);
-    DrawVirtualObject("corridor");
+        glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+        instances[i].object->drawObject();
+    }
+
 }
 
 // Função que pega a matriz M e guarda a mesma no topo da pilha
@@ -590,6 +681,25 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
         glfwSetWindowShouldClose(window, GL_TRUE);
 
+    if (key == GLFW_KEY_LEFT && action == GLFW_PRESS) {
+        g_InstanceSelectedId--;
+
+        if(g_InstanceSelectedId < 0){
+            g_InstanceSelectedId = 0;
+        }
+
+        g_InstanceSelected = &instances[g_InstanceSelectedId];
+    }
+    if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
+        g_InstanceSelectedId++;
+
+        if(g_InstanceSelectedId > maxInstanceId){
+            g_InstanceSelectedId = maxInstanceId;
+        }
+
+        g_InstanceSelected = &instances[g_InstanceSelectedId];
+    }
+
     // Movimentação da câmera
     if (key == GLFW_KEY_W) g_MovingForward = IsActionPressed(action);
     if (key == GLFW_KEY_S) g_MovingBackward = IsActionPressed(action);
@@ -599,9 +709,13 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_E) g_MovingDown = IsActionPressed(action);
 
     if (mod == GLFW_MOD_SHIFT) g_ModShift = IsActionPressed(action);
+    if (mod == GLFW_MOD_CONTROL) g_ModCtrl = IsActionPressed(action);
+    if (key == GLFW_KEY_Z) g_IsZPressed = IsActionPressed(action);
+    if (key == GLFW_KEY_X) g_IsXPressed = IsActionPressed(action);
+    if (key == GLFW_KEY_C) g_IsCPressed = IsActionPressed(action);
 
     if(key == GLFW_KEY_P && IsActionPressed(action)) g_Mode = "PLAYER";
-    if(key == GLFW_KEY_M && IsActionPressed(action)) g_Mode = "MOVE";
+    if(key == GLFW_KEY_O && IsActionPressed(action)) g_Mode = "MOVE";
 
     // Se o usuário apertar a tecla H, fazemos um "toggle" do texto informativo mostrado na tela.
     if (key == GLFW_KEY_H && action == GLFW_PRESS)

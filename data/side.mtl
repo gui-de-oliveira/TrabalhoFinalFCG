@@ -1,0 +1,35 @@
+# Blender MTL File: 'untitled.blend'
+# Material Count: 3
+
+newmtl light01_com_chika.001
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Pokemon Lets Go Pikachu Eevee - Underground Path(1)\\Underground Path\\Textures\\light01_com_chika.png
+
+newmtl light01_com_chika_2.001
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Pokemon Lets Go Pikachu Eevee - Underground Path(1)\\Underground Path\\Textures\\light01_com_chika.png
+
+newmtl wall01_com_chika.001
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Pokemon Lets Go Pikachu Eevee - Underground Path(1)\\Underground Path\\Textures\\wall01_com_chika.png
