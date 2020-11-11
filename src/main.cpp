@@ -77,9 +77,9 @@ class Camera
 
     glm::vec4 getDirection() {
         return glm::vec4(
-            -cos(phi) * sin(theta),
-            -sin(phi),
-            -cos(phi) * cos(theta),
+            cos(phi) * sin(theta),
+            sin(phi),
+            cos(phi) * cos(theta),
             0.0f);
     };
 };
