@@ -33,24 +33,6 @@ uniform int object_id;
 uniform vec4 bbox_min;
 uniform vec4 bbox_max;
 
-// Variáveis para acesso das imagens de textura
-uniform sampler2D TextureImage0;
-uniform sampler2D TextureImage1;
-
-uniform sampler2D Link0;
-uniform sampler2D Link1;
-uniform sampler2D Link2;
-uniform sampler2D Link3;
-uniform sampler2D Link4;
-uniform sampler2D Link5;
-uniform sampler2D Link6;
-uniform sampler2D Link7;
-uniform sampler2D Link8;
-uniform sampler2D Link9;
-uniform sampler2D Link10;
-uniform sampler2D Link11;
-uniform sampler2D Link12;
-
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
 
@@ -58,52 +40,8 @@ out vec4 color;
 #define M_PI   3.14159265358979323846
 #define M_PI_2 1.57079632679489661923
 
-sampler2D select(float i){
-    float U = texcoords.x;
-    float V = texcoords.y;
-
-    switch(int(i)) {
-        case 0: return Link0;
-        case 1: return Link1;
-        case 2: return Link2;
-        case 3: return Link3;
-        case 4: return Link4;
-        case 5: return Link5;
-        case 6: return Link6;
-        case 7: return Link7;
-        case 8: return Link8;
-        case 9: return Link9;
-        case 10: return Link10;
-        case 11: return Link11;
-        case 12: return Link12;
-    }
-
-    return TextureImage0;
-}
-
 void main()
 {
-
-    // Coordenadas de textura U e V
-    float U = 0.0;
-    float V = 0.0;
-
-    if (object_id == LINK)
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-
-        color = texture(select(material_id.x), vec2(U,V));
-
-        if(color.a < 0.6){
-            discard;
-            return;
-        }
-
-        return;
-    }
-
     // Obtemos a posição da câmera utilizando a inversa da matriz que define o
     // sistema de coordenadas da câmera.
     vec4 origin = vec4(0.0, 0.0, 0.0, 1.0);
@@ -126,79 +64,9 @@ void main()
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
 
-
-
-    if ( object_id == SPHERE )
-    {
-        // PREENCHA AQUI as coordenadas de textura da esfera, computadas com
-        // projeção esférica EM COORDENADAS DO MODELO. Utilize como referência
-        // o slides 134-150 do documento Aula_20_Mapeamento_de_Texturas.pdf.
-        // A esfera que define a projeção deve estar centrada na posição
-        // "bbox_center" definida abaixo.
-
-        // Você deve utilizar:
-        //   função 'length( )' : comprimento Euclidiano de um vetor
-        //   função 'atan( , )' : arcotangente. Veja https://en.wikipedia.org/wiki/Atan2.
-        //   função 'asin( )'   : seno inverso.
-        //   constante M_PI
-        //   variável position_model
-
-        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
-
-        float sphere_radius = 1.0;
-        vec4 p_xyz = sphere_radius * normalize(position_model - bbox_center);
-
-        float omega = atan(p_xyz.x, p_xyz.z);
-        float alpha = asin(p_xyz.y/sphere_radius);
-
-        U = (omega + M_PI)/(M_PI * 2.0);
-        V = (alpha + M_PI_2)/M_PI;
-    }
-    else if ( object_id == BUNNY )
-    {
-        // PREENCHA AQUI as coordenadas de textura do coelho, computadas com
-        // projeção planar XY em COORDENADAS DO MODELO. Utilize como referência
-        // o slides 99-104 do documento Aula_20_Mapeamento_de_Texturas.pdf,
-        // e também use as variáveis min*/max* definidas abaixo para normalizar
-        // as coordenadas de textura U e V dentro do intervalo [0,1]. Para
-        // tanto, veja por exemplo o mapeamento da variável 'p_v' utilizando
-        // 'h' no slides 158-160 do documento Aula_20_Mapeamento_de_Texturas.pdf.
-        // Veja também a Questão 4 do Questionário 4 no Moodle.
-
-        float minx = bbox_min.x;
-        float maxx = bbox_max.x;
-
-        float miny = bbox_min.y;
-        float maxy = bbox_max.y;
-
-        float minz = bbox_min.z;
-        float maxz = bbox_max.z;
-
-        U = (position_model.x - minx)/(maxx-minx);
-        V = (position_model.y - miny)/(maxy-miny);
-    }
-    else
-    {
-        // Coordenadas de textura do plano, obtidas do arquivo OBJ.
-        U = texcoords.x;
-        V = texcoords.y;
-    }
-
-
-    // Obtemos a refletância difusa a partir da leitura da imagem TextureImage0
-    vec3 Kd0 = texture(TextureImage0, vec2(U,V)).rgb;
-    vec3 Kd1 = texture(TextureImage1, vec2(U,V)).rgb;
-
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
 
-    vec3 color3 = Kd0 * (lambert + 0.01);
-    color3 += Kd1 * max(0, (1 - ((lambert + 0.01) * 5.0)));
-
-    // Cor final com correção gamma, considerando monitor sRGB.
-    // Veja https://en.wikipedia.org/w/index.php?title=Gamma_correction&oldid=751281772#Windows.2C_Mac.2C_sRGB_and_TV.2Fvideo_standard_gammas
-    color3 = pow(color3, vec3(1.0,1.0,1.0)/2.2);
-
-    color = vec4(color3, 1.0);
+    color = vec4(vec3(1.0, 1.0, 1.0) * (lambert + 0.01), 1.0);
 }
 

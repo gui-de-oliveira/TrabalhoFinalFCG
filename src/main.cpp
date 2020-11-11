@@ -219,24 +219,6 @@ int main(int argc, char* argv[])
     //
     LoadShadersFromFiles();
 
-    // Carregamos duas imagens para serem utilizadas como textura
-
-    LoadTextureImage("../../data/de_00.png");
-    LoadTextureImage("../../data/de_00.png");
-    LoadTextureImage("../../data/de_00.png");
-    LoadTextureImage("../../data/de_01.png");
-    LoadTextureImage("../../data/de_hair00.png");
-    LoadTextureImage("../../data/de_hair01.png");
-    LoadTextureImage("../../data/de_hair02.png");
-    LoadTextureImage("../../data/de_hair03.png");
-    LoadTextureImage("../../data/de_hair04.png");
-    LoadTextureImage("../../data/de_hair05.png");
-    LoadTextureImage("../../data/de_hair06.png");
-    LoadTextureImage("../../data/de_robe00.png");
-    LoadTextureImage("../../data/de_robe00.png");
-    LoadTextureImage("../../data/de_robe01.png");
-    LoadTextureImage("../../data/robe02.png");
-
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     ObjModel spheremodel("../../data/sphere.obj");
     ComputeNormals(&spheremodel);
