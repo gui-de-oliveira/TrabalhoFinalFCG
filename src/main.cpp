@@ -607,7 +607,7 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 
         // Atualizamos parâmetros da câmera com os deslocamentos
         g_PlayerCamera.theta -= 0.01f*dx;
-        g_PlayerCamera.phi   += 0.01f*dy;
+        g_PlayerCamera.phi   -= 0.01f*dy;
 
         // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
         float phimax = 3.141592f/2;
