@@ -77,9 +77,9 @@ class Camera
 
     glm::vec4 getDirection() {
         return glm::vec4(
-            cos(phi) * sin(theta),
-            sin(phi),
-            cos(phi) * cos(theta),
+            -cos(phi) * sin(theta),
+            -sin(phi),
+            -cos(phi) * cos(theta),
             0.0f);
     };
 };
@@ -190,6 +190,9 @@ int main(int argc, char* argv[])
     glfwSetMouseButtonCallback(window, MouseButtonCallback);
     // ... ou movimentar o cursor do mouse em cima da janela
     glfwSetCursorPosCallback(window, CursorPosCallback);
+    
+    // Capturamos o cursor no centro da tela e o dexamos escondido
+    glfwSetInputMode(window,GLFW_CURSOR,GLFW_CURSOR_DISABLED);
 
     // Indicamos que as chamadas OpenGL deverão renderizar nesta janela
     glfwMakeContextCurrent(window);
@@ -264,6 +267,10 @@ int main(int argc, char* argv[])
     ComputeNormals(&kingModel);
     BuildTrianglesAndAddToVirtualScene(&kingModel);
 
+    ObjModel corridorModel("../../data/corridor.obj");
+    ComputeNormals(&corridorModel);
+    BuildTrianglesAndAddToVirtualScene(&corridorModel);
+
     if ( argc > 1 )
     {
         ObjModel model(argv[1]);
@@ -294,7 +301,7 @@ int main(int argc, char* argv[])
     {
         float delta = glfwGetTime() - lastTime;
         lastTime = glfwGetTime();
-
+        
         // Indicamos que queremos renderizar em toda região do framebuffer. A
         // função "glViewport" define o mapeamento das "normalized device
         // coordinates" (NDC) para "pixel coordinates".  Essa é a operação de
@@ -309,9 +316,9 @@ int main(int argc, char* argv[])
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(program_id);
-
+        
         // Movimentamos o personagem se alguma tecla estiver pressionada
-        float speed = 1.0f;
+        float speed = 2.0f;
         if(g_MovingForward) g_PlayerCamera.position += speed * delta * g_CameraRelativeForward;
         if(g_MovingBackward) g_PlayerCamera.position -= speed * delta * g_CameraRelativeForward;
         if(g_MovingLeft) g_PlayerCamera.position += speed * delta * g_CameraRelativeLeft;
@@ -393,6 +400,7 @@ int main(int argc, char* argv[])
 #define BUNNY  1
 #define PLANE  2
 #define LINK  3
+#define CORRIDOR 4
 
 void DrawWorld(bool drawPlayer, bool drawCamera){
     glm::mat4 model = Matrix_Identity(); // Transformação identidade de modelagem
@@ -469,11 +477,19 @@ void DrawWorld(bool drawPlayer, bool drawCamera){
 
     model = Matrix_Translate(-4.82, 0.42, -17.29)
         * Matrix_Scale(0.5f, 0.5f, 0.5f);
-        
+
     glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
     glUniform1i(object_id_uniform, LINK);
 
     DrawVirtualObject("demyx");
+
+    model = Matrix_Translate(0.0f, 0.42, 0.0f)
+        * Matrix_Scale(2.5f, 2.5f, 2.5f);
+
+    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+    glUniform1i(object_id_uniform, CORRIDOR);
+    DrawVirtualObject("corridor");
+
 
     }
 
@@ -537,7 +553,7 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     {
         // Quando o usuário soltar o botão esquerdo do mouse, atualizamos a
         // variável abaixo para false.
-        g_LeftMouseButtonPressed = false;
+        g_LeftMouseButtonPressed = true;
     }
     if (button == GLFW_MOUSE_BUTTON_RIGHT && action == GLFW_PRESS)
     {

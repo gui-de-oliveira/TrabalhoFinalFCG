@@ -25,6 +25,7 @@ uniform mat4 projection;
 #define BUNNY  1
 #define PLANE  2
 #define LINK  3
+#define CORRIDOR 4
 
 uniform int object_id;
 
