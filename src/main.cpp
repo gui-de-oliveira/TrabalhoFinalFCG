@@ -136,12 +136,6 @@ ModelInstance instances[] =
     ModelInstance(&Block_XminusOpen,    glm::vec4(2 * BLOCK_SIZE, 0.0,  BLOCK_SIZE,     1.0), glm::vec3(0.0, 0.0, 0.0)),
 
     // ModelInstance(&Corridor, glm::vec4(-0.571, -2.3, -10.442, 1.0), glm::vec3(0.0, 0.0, 0.0)),
-    // ModelInstance(&Corridor, glm::vec4(-0.603, -2.3, -10.265, 1.0), glm::vec3(HALF_PI, 0.0, 0.0)),
-    // ModelInstance(&Corridor, glm::vec4(-10.01, -2.3, 3.63, 1.0), glm::vec3(HALF_PI, 0.0, -HALF_PI)),
-    // ModelInstance(&HalfCorridor, glm::vec4(3.84216, -2.3, 16.3634, 1.0), glm::vec3(HALF_PI, 0.0, PI)),
-    // ModelInstance(&Wall, glm::vec4(-13.267, -2.3, -0.37, 1.0), glm::vec3(HALF_PI, 0.0, 3.0 * HALF_PI)),
-    // ModelInstance(&Wall, glm::vec4(16.452, -2.3, 3.122, 1.0), glm::vec3(HALF_PI, 0.0, HALF_PI)),
-    // ModelInstance(&Wall, glm::vec4(3.434, -2.3, -13.424, 1.0), glm::vec3(HALF_PI, 0.0, 2.0 * PI)),
 };
 ModelInstance* g_InstanceSelected = &instances[0];
 int maxInstanceId = sizeof(instances)/sizeof(instances[0]) - 1;
@@ -285,19 +279,15 @@ int main(int argc, char* argv[])
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     string path = "../../data/";
-    string modelsList[10] = {
+    string modelsList[6] = {
         "Link0.obj",
         "camera.obj",
         "king.obj",
         "corridor.obj",
-        "box-side.obj",
-        "floor.obj",
-        "side.obj",
-        "box.obj",
         "corridor2.obj",
         "Block.obj",
     };
-    for(int i = 0; i < 10; i++)
+    for(int i = 0; i < 6; i++)
     {
         ObjModel corridorModel((path + modelsList[i]).c_str());
         ComputeNormals(&corridorModel);
