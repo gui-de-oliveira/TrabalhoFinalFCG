@@ -68,12 +68,41 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 
 void DrawWorld(bool drawPlayer, bool drawCamera);
+bool collisionDetect (Camera g_PlayerCamera);
 
 #define SPHERE 0
 #define BUNNY  1
 #define PLANE  2
 #define LINK  3
 #define CORRIDOR 4
+
+string modelsList[6] = {
+    "Link0.obj",
+    "camera.obj",
+    "king.obj",
+    "corridor.obj",
+    "corridor2.obj",
+    "Block.obj",
+};
+
+bool collisionDetect (Camera g_PlayerCamera){
+    // bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
+    //     two.Position.x + two.Size.x >= one.Position.x;
+
+    // bool collisionZ = one.Position.y + one.Size.y >= two.Position.y &&
+    //     two.Position.y + two.Size.y >= one.Position.y;
+    // // collision only if on both axes
+    // return collisionX && collisionZ;
+    //for (int i=0; i<g_VirtualScene.size(); i++) {
+    bool collisionX = g_PlayerCamera.position.x <= g_VirtualScene["WallY+_4"].bbox_max.x
+                   && g_PlayerCamera.position.x >= g_VirtualScene["WallY+_4"].bbox_min.x;
+
+    bool collisionZ = g_PlayerCamera.position.z <= g_VirtualScene["WallY+_4"].bbox_max.z
+                   && g_PlayerCamera.position.z >= g_VirtualScene["WallY+_4"].bbox_min.z;
+    //}
+
+    return collisionX && collisionZ;
+}
 
 void drawCorridorObject(){
     glUniform1i(object_id_uniform, CORRIDOR);
@@ -100,9 +129,9 @@ void drawEnemy(){
     DrawVirtualObject("demyx");
 }
 
-ModelType Corridor = ModelType(glm::vec3(10.0,10.0,10.0), drawCorridorObject);
-ModelType HalfCorridor = ModelType(glm::vec3(0.25, 0.25, 0.25), drawHalfCorridorObject);
-ModelType Wall = ModelType(glm::vec3(0.25, 0.25, 0.25), drawWallObject);
+//ModelType Corridor = ModelType(glm::vec3(10.0,10.0,10.0), drawCorridorObject);
+//ModelType HalfCorridor = ModelType(glm::vec3(0.25, 0.25, 0.25), drawHalfCorridorObject);
+//ModelType Wall = ModelType(glm::vec3(0.25, 0.25, 0.25), drawWallObject);
 ModelType Enemy = ModelType(glm::vec3(1.0, 1.0, 1.0), drawEnemy);
 
 void drawBlockGeneric(bool drawXplus, bool drawXminus, bool drawZplus, bool drawZminus){
@@ -294,19 +323,12 @@ int main(int argc, char* argv[])
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     string path = "../../data/";
-    string modelsList[6] = {
-        "Link0.obj",
-        "camera.obj",
-        "king.obj",
-        "corridor.obj",
-        "corridor2.obj",
-        "Block.obj",
-    };
+
     for(int i = 0; i < 6; i++)
     {
-        ObjModel corridorModel((path + modelsList[i]).c_str());
-        ComputeNormals(&corridorModel);
-        BuildTrianglesAndAddToVirtualScene(&corridorModel);
+        ObjModel models((path + modelsList[i]).c_str());
+        ComputeNormals(&models);
+        BuildTrianglesAndAddToVirtualScene(&models);
     }
 
     if ( argc > 1 )
@@ -353,33 +375,36 @@ int main(int argc, char* argv[])
         glUseProgram(program_id);
 
         // Calcula a distância que deve ser percorrida desde o último frame
-        float deltaDistance = positionXByTime(currentTime) - positionXByTime(lastTime);
-        
-        enemyInstance->position.x += deltaDistance;
-        enemyInstance->rotation.y = deltaDistance < 0 ? -HALF_PI : HALF_PI;
+            float deltaDistance = positionXByTime(currentTime) - positionXByTime(lastTime);
 
-        // Movimentamos o personagem se alguma tecla estiver pressionada
-        float speed = 2.0f * (g_ModShift ? 10.0 : 1.0) * (g_ModCtrl ? 0.1 : 1.0);
-        if(g_MovingForward) g_PlayerCamera.position += speed * delta * g_CameraRelativeForward;
-        if(g_MovingBackward) g_PlayerCamera.position -= speed * delta * g_CameraRelativeForward;
-        if(g_MovingLeft) g_PlayerCamera.position += speed * delta * g_CameraRelativeLeft;
-        if(g_MovingRight) g_PlayerCamera.position -= speed * delta * g_CameraRelativeLeft;
-        if(g_MovingUp) g_PlayerCamera.position += speed * delta * UP_VECTOR;
-        if(g_MovingDown) g_PlayerCamera.position -= speed * delta * UP_VECTOR;
+        if(!g_EscapePressed){
 
-        if(g_RightMouseButtonPressed)
-        {
-            if(g_MovingForward) g_InstanceSelected->position += speed * delta * g_CameraRelativeForward;
-            if(g_MovingBackward) g_InstanceSelected->position -= speed * delta * g_CameraRelativeForward;
-            if(g_MovingLeft) g_InstanceSelected->position += speed * delta * g_CameraRelativeLeft;
-            if(g_MovingRight) g_InstanceSelected->position -= speed * delta * g_CameraRelativeLeft;
-            if(g_MovingUp) g_InstanceSelected->position += speed * delta * UP_VECTOR;
-            if(g_MovingDown) g_InstanceSelected->position -= speed * delta * UP_VECTOR;
+            enemyInstance->position.x += deltaDistance;
+            enemyInstance->rotation.y = deltaDistance < 0 ? -HALF_PI : HALF_PI;
+
+            // Movimentamos o personagem se alguma tecla estiver pressionada
+            float speed = 2.0f * (g_ModShift ? 10.0 : 1.0) * (g_ModCtrl ? 0.1 : 1.0);
+            if(g_MovingForward && !collisionDetect(g_PlayerCamera)) g_PlayerCamera.position += speed * delta * g_CameraRelativeForward;
+            if(g_MovingBackward) g_PlayerCamera.position -= speed * delta * g_CameraRelativeForward;
+            if(g_MovingLeft) g_PlayerCamera.position += speed * delta * g_CameraRelativeLeft;
+            if(g_MovingRight) g_PlayerCamera.position -= speed * delta * g_CameraRelativeLeft;
+            if(g_MovingUp) g_PlayerCamera.position += speed * delta * UP_VECTOR;
+            if(g_MovingDown) g_PlayerCamera.position -= speed * delta * UP_VECTOR;
+
+            if(g_RightMouseButtonPressed)
+            {
+                if(g_MovingForward) g_InstanceSelected->position += speed * delta * g_CameraRelativeForward;
+                if(g_MovingBackward) g_InstanceSelected->position -= speed * delta * g_CameraRelativeForward;
+                if(g_MovingLeft) g_InstanceSelected->position += speed * delta * g_CameraRelativeLeft;
+                if(g_MovingRight) g_InstanceSelected->position -= speed * delta * g_CameraRelativeLeft;
+                if(g_MovingUp) g_InstanceSelected->position += speed * delta * UP_VECTOR;
+                if(g_MovingDown) g_InstanceSelected->position -= speed * delta * UP_VECTOR;
+            }
+
+            if(g_IsZPressed) g_InstanceSelected->rotation.x += delta * (g_ModShift ? -1 : 1);
+            if(g_IsXPressed) g_InstanceSelected->rotation.y += delta * (g_ModShift ? -1 : 1);
+            if(g_IsCPressed) g_InstanceSelected->rotation.z += delta * (g_ModShift ? -1 : 1);
         }
-
-        if(g_IsZPressed) g_InstanceSelected->rotation.x += delta * (g_ModShift ? -1 : 1);
-        if(g_IsXPressed) g_InstanceSelected->rotation.y += delta * (g_ModShift ? -1 : 1);
-        if(g_IsCPressed) g_InstanceSelected->rotation.z += delta * (g_ModShift ? -1 : 1);
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
         // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
@@ -486,12 +511,12 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
         DrawVirtualObject("camera_reference");
     }
 
-    model = Matrix_Translate(-4.82, 0.42, -17.29)
-        * Matrix_Scale(0.5f, 0.5f, 0.5f);
+    // model = Matrix_Translate(-4.82, 0.42, -17.29)
+    //     * Matrix_Scale(0.5f, 0.5f, 0.5f);
 
-    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-    glUniform1i(object_id_uniform, LINK);
-    DrawVirtualObject("demyx");
+    // glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+    // glUniform1i(object_id_uniform, LINK);
+    // DrawVirtualObject("demyx");
 
     for(int i = 0; i < maxInstanceId + 1; i++) {
         ModelInstance instance =  instances[i];
@@ -507,12 +532,12 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
         instance.object->drawObject();
     }
 
-    model = Matrix_Translate(-10, 0.42, -17.29)
-        * Matrix_Scale(0.5f, 0.5f, 0.5f)
-        * Matrix_Rotate_Z(M_PI_2);
-    glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-    glUniform1i(object_id_uniform, CORRIDOR);
-    DrawVirtualObject("corridor2");
+    // model = Matrix_Translate(-10, 0.42, -17.29)
+    //     * Matrix_Scale(0.5f, 0.5f, 0.5f)
+    //     * Matrix_Rotate_Z(M_PI_2);
+    // glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
+    // glUniform1i(object_id_uniform, CORRIDOR);
+    // DrawVirtualObject("corridor2");
 
 }
 

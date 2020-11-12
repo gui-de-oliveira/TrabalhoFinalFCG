@@ -57,6 +57,9 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "xutility": "cpp",
-        "*.rh": "cpp"
+        "*.rh": "cpp",
+        "atomic": "cpp",
+        "compare": "cpp",
+        "iterator": "cpp"
     }
 }
