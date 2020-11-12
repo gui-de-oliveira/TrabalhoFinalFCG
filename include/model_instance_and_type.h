@@ -31,7 +31,7 @@ class ModelInstance
         position = _position;
         rotation = _rotation;
         object = _object;
-        //ModelInstance(_object, _position, _rotation);
+        ModelInstance(_object, _position, _rotation);
     }
 
     ModelInstance(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation) {

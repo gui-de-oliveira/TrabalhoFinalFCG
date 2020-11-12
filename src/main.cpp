@@ -69,8 +69,6 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
 
 void DrawWorld(bool drawPlayer, bool drawCamera);
 
-
-
 #define SPHERE 0
 #define BUNNY  1
 #define PLANE  2
@@ -83,14 +81,12 @@ void drawCorridorObject(){
     DrawVirtualObject("securityCamera");
 }
 
-
 void drawHalfCorridorObject(){
     glUniform1i(object_id_uniform, CORRIDOR);
     DrawVirtualObject("box-side-0");
     DrawVirtualObject("box-side-1");
     DrawVirtualObject("box-side-2");
 }
-
 
 void drawWallObject(){
     glUniform1i(object_id_uniform, CORRIDOR);
@@ -103,13 +99,43 @@ ModelType Corridor = ModelType(glm::vec3(10.0,10.0,10.0), drawCorridorObject);
 ModelType HalfCorridor = ModelType(glm::vec3(0.25, 0.25, 0.25), drawHalfCorridorObject);
 ModelType Wall = ModelType(glm::vec3(0.25, 0.25, 0.25), drawWallObject);
 
+void drawBlockGeneric(bool drawXplus, bool drawXminus, bool drawZplus, bool drawZminus){
+    DrawVirtualObject("Floor_1");
+    if (drawZminus) DrawVirtualObject("WallY+_4");
+    if (drawZplus) DrawVirtualObject("WallY-_5");
+    if (drawXplus) DrawVirtualObject("WallX+_2");
+    if (drawXminus) DrawVirtualObject("WallX-_3");
+    DrawVirtualObject("Ceiling_6");
+}
+
+#define BLOCK_SIZE 2
+
+void drawZminusOpen() { drawBlockGeneric(true, true, true, false); }
+void drawZplusOpen() { drawBlockGeneric(true, true, false, true); }
+void drawXminusOpen() { drawBlockGeneric(true, false, true, true); }
+void drawXbothOpen() { drawBlockGeneric(false, false, true, true); }
+void drawZbothAndXplusOpen() { drawBlockGeneric(false, true, false, false); }
+
+ModelType Block_ZminusOpen = ModelType(glm::vec3(1.0, 1.0, 1.0), drawZminusOpen);
+ModelType Block_ZplusOpen = ModelType(glm::vec3(1.0, 1.0, 1.0), drawZplusOpen);
+ModelType Block_XminusOpen = ModelType(glm::vec3(1.0, 1.0, 1.0), drawXminusOpen);
+ModelType Block_XbothOpen = ModelType(glm::vec3(1.0, 1.0, 1.0), drawXbothOpen);
+ModelType Block_XplusAndZOpen = ModelType(glm::vec3(1.0, 1.0, 1.0), drawZbothAndXplusOpen);
+
 #define PI 3.1415
 #define HALF_PI PI / 2.0
 
 int g_InstanceSelectedId = 0;
 ModelInstance instances[] =
 {
-    ModelInstance(&Corridor, glm::vec4(-0.571, -2.3, -10.442, 1.0), glm::vec3(0.0, 0.0, 0.0))
+    //                                            Xpos            Ypos  Zpos
+    ModelInstance(&Block_ZplusOpen,     glm::vec4(0.0,            0.0,  0.0,            1.0), glm::vec3(0.0, 0.0, 0.0)),
+    ModelInstance(&Block_XplusAndZOpen, glm::vec4(0.0,            0.0,  BLOCK_SIZE,     1.0), glm::vec3(0.0, 0.0, 0.0)),
+    ModelInstance(&Block_ZminusOpen,    glm::vec4(0.0,            0.0,  2 * BLOCK_SIZE, 1.0), glm::vec3(0.0, 0.0, 0.0)),
+    ModelInstance(&Block_XbothOpen,     glm::vec4(BLOCK_SIZE,     0.0,  BLOCK_SIZE,     1.0), glm::vec3(0.0, 0.0, 0.0)),
+    ModelInstance(&Block_XminusOpen,    glm::vec4(2 * BLOCK_SIZE, 0.0,  BLOCK_SIZE,     1.0), glm::vec3(0.0, 0.0, 0.0)),
+
+    // ModelInstance(&Corridor, glm::vec4(-0.571, -2.3, -10.442, 1.0), glm::vec3(0.0, 0.0, 0.0)),
     // ModelInstance(&Corridor, glm::vec4(-0.603, -2.3, -10.265, 1.0), glm::vec3(HALF_PI, 0.0, 0.0)),
     // ModelInstance(&Corridor, glm::vec4(-10.01, -2.3, 3.63, 1.0), glm::vec3(HALF_PI, 0.0, -HALF_PI)),
     // ModelInstance(&HalfCorridor, glm::vec4(3.84216, -2.3, 16.3634, 1.0), glm::vec3(HALF_PI, 0.0, PI)),
@@ -124,8 +150,8 @@ int maxInstanceId = sizeof(instances)/sizeof(instances[0]) - 1;
 // Vetor "up" fixado para apontar para o "céu" (eito Y global)
 glm::vec4 UP_VECTOR = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
-Camera g_FixedCamera(0.103, -0.614, 1.49, -0.26, 14.12);
-Camera g_PlayerCamera(1.996, -1.748, -3.174, 0.0, 12.42);
+Camera g_FixedCamera(-1.052, 1.917, 2.0, -0.28, 20.39);
+Camera g_PlayerCamera(0.0, 0.55, 0.0, -0.24, 18.85);
 
 glm::vec4 g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
 glm::vec4 g_CameraRelativeForward =  crossproduct(g_CameraRelativeLeft, UP_VECTOR);
@@ -259,7 +285,7 @@ int main(int argc, char* argv[])
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     string path = "../../data/";
-    string modelsList[9] = {
+    string modelsList[10] = {
         "Link0.obj",
         "camera.obj",
         "king.obj",
@@ -268,9 +294,10 @@ int main(int argc, char* argv[])
         "floor.obj",
         "side.obj",
         "box.obj",
-        "corridor2.obj"
+        "corridor2.obj",
+        "Block.obj",
     };
-    for(int i = 0; i < 9; i++)
+    for(int i = 0; i < 10; i++)
     {
         ObjModel corridorModel((path + modelsList[i]).c_str());
         ComputeNormals(&corridorModel);
