@@ -453,14 +453,17 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
     DrawVirtualObject("demyx");
 
     for(int i = 0; i < maxInstanceId + 1; i++) {
-        model = Matrix_Translate(instances[i].position.x, instances[i].position.y, instances[i].position.z)
-            * Matrix_Rotate_X(instances[i].rotation.x)
-            * Matrix_Rotate_Y(instances[i].rotation.y)
-            * Matrix_Rotate_Z(instances[i].rotation.z)
-            * Matrix_Scale(0.25f, 0.25, 0.25);
+        ModelInstance instance =  instances[i];
+
+        model = Matrix_Translate(instance.position.x, instance.position.y, instance.position.z)
+            * Matrix_Rotate_X(instance.rotation.x)
+            * Matrix_Rotate_Y(instance.rotation.y)
+            * Matrix_Rotate_Z(instance.rotation.z)
+            * Matrix_Scale(instance.scale.x, instance.scale.y, instance.scale.z)
+            * Matrix_Scale(instance.object->scale.x, instance.object->scale.y, instance.object->scale.z);
 
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        instances[i].object->drawObject();
+        instance.object->drawObject();
     }
 
     model = Matrix_Translate(-10, 0.42, -17.29)
