@@ -95,9 +95,15 @@ void drawWallObject(){
     DrawVirtualObject("side-2");
 }
 
+void drawEnemy(){
+    glUniform1i(object_id_uniform, LINK);
+    DrawVirtualObject("demyx");
+}
+
 ModelType Corridor = ModelType(glm::vec3(10.0,10.0,10.0), drawCorridorObject);
 ModelType HalfCorridor = ModelType(glm::vec3(0.25, 0.25, 0.25), drawHalfCorridorObject);
 ModelType Wall = ModelType(glm::vec3(0.25, 0.25, 0.25), drawWallObject);
+ModelType Enemy = ModelType(glm::vec3(1.0, 1.0, 1.0), drawEnemy);
 
 void drawBlockGeneric(bool drawXplus, bool drawXminus, bool drawZplus, bool drawZminus){
     DrawVirtualObject("Floor_1");
@@ -107,8 +113,6 @@ void drawBlockGeneric(bool drawXplus, bool drawXminus, bool drawZplus, bool draw
     if (drawXminus) DrawVirtualObject("WallX-_3");
     DrawVirtualObject("Ceiling_6");
 }
-
-#define BLOCK_SIZE 2
 
 void drawZminusOpen() { drawBlockGeneric(true, true, true, false); }
 void drawZplusOpen() { drawBlockGeneric(true, true, false, true); }
@@ -124,10 +128,14 @@ ModelType Block_XplusAndZOpen = ModelType(glm::vec3(1.0, 1.0, 1.0), drawZbothAnd
 
 #define PI 3.1415
 #define HALF_PI PI / 2.0
+#define BLOCK_SIZE 2
 
 int g_InstanceSelectedId = 0;
 ModelInstance instances[] =
 {
+    //This item should go first!! [so I know which id is the enemyInstance]
+    ModelInstance(&Enemy, glm::vec4(4.0, 0.0, 2.0, 1.0), glm::vec3(0.0, 0.0, 0.0)),
+
     //                                            Xpos            Ypos  Zpos
     ModelInstance(&Block_ZplusOpen,     glm::vec4(0.0,            0.0,  0.0,            1.0), glm::vec3(0.0, 0.0, 0.0)),
     ModelInstance(&Block_XplusAndZOpen, glm::vec4(0.0,            0.0,  BLOCK_SIZE,     1.0), glm::vec3(0.0, 0.0, 0.0)),
@@ -139,6 +147,8 @@ ModelInstance instances[] =
 };
 ModelInstance* g_InstanceSelected = &instances[0];
 int maxInstanceId = sizeof(instances)/sizeof(instances[0]) - 1;
+
+ModelInstance* enemyInstance = &instances[0];
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 // Vetor "up" fixado para apontar para o "céu" (eito Y global)
@@ -202,6 +212,11 @@ bool g_UsePerspectiveProjection = true;
 
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
+
+// Dado o tempo de execução, retorna o offset de posição X do inimigo
+float positionXByTime(float time){
+    return sin(time);
+}
 
 int main(int argc, char* argv[])
 {
@@ -312,12 +327,15 @@ int main(int argc, char* argv[])
     // glCullFace(GL_BACK);
     // glFrontFace(GL_CCW);
 
-    float lastTime = glfwGetTime();
+    glm::vec4 offset;
+    float currentTime = glfwGetTime();
+    float lastTime = currentTime;
     // Ficamos em loop, renderizando, até que o usuário feche a janela
     while (!glfwWindowShouldClose(window))
     {
-        float delta = glfwGetTime() - lastTime;
-        lastTime = glfwGetTime();
+        float delta = glfwGetTime() - currentTime;
+        lastTime = currentTime;
+        currentTime = glfwGetTime();
 
         // Indicamos que queremos renderizar em toda região do framebuffer. A
         // função "glViewport" define o mapeamento das "normalized device
@@ -333,6 +351,12 @@ int main(int argc, char* argv[])
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(program_id);
+
+        // Calcula a distância que deve ser percorrida desde o último frame
+        float deltaDistance = positionXByTime(currentTime) - positionXByTime(lastTime);
+        
+        enemyInstance->position.x += deltaDistance;
+        enemyInstance->rotation.y = deltaDistance < 0 ? -HALF_PI : HALF_PI;
 
         // Movimentamos o personagem se alguma tecla estiver pressionada
         float speed = 2.0f * (g_ModShift ? 10.0 : 1.0) * (g_ModCtrl ? 0.1 : 1.0);
