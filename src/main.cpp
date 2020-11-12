@@ -713,8 +713,9 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_Q) g_MovingUp = IsActionPressed(action);
     if (key == GLFW_KEY_E) g_MovingDown = IsActionPressed(action);
 
-    if (mod == GLFW_MOD_SHIFT) g_ModShift = IsActionPressed(action);
-    if (mod == GLFW_MOD_CONTROL) g_ModCtrl = IsActionPressed(action);
+    if (key == GLFW_KEY_LEFT_SHIFT) g_ModShift = IsActionPressed(action);
+    if (key == GLFW_KEY_LEFT_CONTROL) g_ModCtrl = IsActionPressed(action);
+
     if (key == GLFW_KEY_Z) g_IsZPressed = IsActionPressed(action);
     if (key == GLFW_KEY_X) g_IsXPressed = IsActionPressed(action);
     if (key == GLFW_KEY_C) g_IsCPressed = IsActionPressed(action);
