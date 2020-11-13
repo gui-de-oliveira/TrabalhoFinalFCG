@@ -30,13 +30,13 @@
 #include <stdexcept>
 #include <algorithm>
 #include <iostream>
+#include <functional>
 
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
 #include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
 
 // Headers da biblioteca para carregar modelos obj
-
 #include <stb_image.h>
 
 // Headers locais, definidos na pasta "include/"
@@ -46,6 +46,7 @@
 #include "modelrendering.h"
 #include "camera.h"
 #include "model_instance_and_type.h"
+#include "block.h"
 
 #define M_PI   3.14159265358979323846
 #define M_PI_2 1.57079632679489661923
@@ -76,100 +77,28 @@ bool collisionDetect (Camera g_PlayerCamera);
 #define LINK  3
 #define CORRIDOR 4
 
-
-
-string modelsList[6] = {
+string modelsList[7] = {
     "Link0.obj",
     "camera.obj",
     "king.obj",
     "corridor.obj",
     "corridor2.obj",
     "Block.obj",
+    "sphere.obj",
 };
-
-string wallsModelsList[4] = {
-    "WallY+_4",
-    "WallY-_5",
-    "WallX+_2",
-    "WallX-_3",
-};
-
-bool collisionDetect (Camera g_PlayerCamera, string wallName){
-    // bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
-    //     two.Position.x + two.Size.x >= one.Position.x;
-
-    // bool collisionZ = one.Position.y + one.Size.y >= two.Position.y &&
-    //     two.Position.y + two.Size.y >= one.Position.y;
-    // // collision only if on both axes
-    // return collisionX && collisionZ;
-    bool collisionX = g_PlayerCamera.position.x <= g_VirtualScene[wallName].bbox_max.x
-                   && g_PlayerCamera.position.x >= g_VirtualScene[wallName].bbox_min.x;
-
-    bool collisionZ = g_PlayerCamera.position.z <= g_VirtualScene[wallName].bbox_max.z
-                   && g_PlayerCamera.position.z >= g_VirtualScene[wallName].bbox_min.z;
-
-    return collisionX && collisionZ;
-}
-
-bool checkCollisions(Camera g_PlayerCamera){
-    for(string wallName : wallsModelsList){
-        if(collisionDetect(g_PlayerCamera, wallName))
-            return false;       // Sem colisões
-    }
-
-    return true;
-}
-
-void drawCorridorObject(){
-    glUniform1i(object_id_uniform, CORRIDOR);
-    DrawVirtualObject("corridor2");
-    DrawVirtualObject("securityCamera");
-}
-
-void drawHalfCorridorObject(){
-    glUniform1i(object_id_uniform, CORRIDOR);
-    DrawVirtualObject("box-side-0");
-    DrawVirtualObject("box-side-1");
-    DrawVirtualObject("box-side-2");
-}
-
-void drawWallObject(){
-    glUniform1i(object_id_uniform, CORRIDOR);
-    DrawVirtualObject("side-0");
-    DrawVirtualObject("side-1");
-    DrawVirtualObject("side-2");
-}
 
 void drawEnemy(){
     glUniform1i(object_id_uniform, LINK);
     DrawVirtualObject("demyx");
 }
 
-//ModelType Corridor = ModelType(glm::vec3(10.0,10.0,10.0), drawCorridorObject);
-//ModelType HalfCorridor = ModelType(glm::vec3(0.25, 0.25, 0.25), drawHalfCorridorObject);
-//ModelType Wall = ModelType(glm::vec3(0.25, 0.25, 0.25), drawWallObject);
-ModelType Enemy = ModelType(glm::vec3(1.0, 1.0, 1.0), drawEnemy);
-
-void drawBlockGeneric(bool drawXplus, bool drawXminus, bool drawZplus, bool drawZminus){
-    DrawVirtualObject("Floor_1");
-    if (drawZminus) DrawVirtualObject("WallY+_4");
-    if (drawZplus) DrawVirtualObject("WallY-_5");
-    if (drawXplus) DrawVirtualObject("WallX+_2");
-    if (drawXminus) DrawVirtualObject("WallX-_3");
-    DrawVirtualObject("Ceiling_6");
+void drawSphere(){
+    glUniform1i(object_id_uniform, LINK);
+    DrawVirtualObject("Sphere");
 }
 
-void drawZminusOpen() { drawBlockGeneric(true, true, true, false); }
-void drawZplusOpen() { drawBlockGeneric(true, true, false, true); }
-void drawXminusOpen() { drawBlockGeneric(true, false, true, true); }
-void drawXbothOpen() { drawBlockGeneric(false, false, true, true); }
-void drawZbothAndXplusOpen() { drawBlockGeneric(false, true, false, false); }
-
-ModelType Block_ZminusOpen = ModelType(glm::vec3(1.0, 1.0, 1.0), drawZminusOpen);
-ModelType Block_ZplusOpen = ModelType(glm::vec3(1.0, 1.0, 1.0), drawZplusOpen);
-ModelType Block_XminusOpen = ModelType(glm::vec3(1.0, 1.0, 1.0), drawXminusOpen);
-ModelType Block_XbothOpen = ModelType(glm::vec3(1.0, 1.0, 1.0), drawXbothOpen);
-ModelType Block_XplusAndZOpen = ModelType(glm::vec3(1.0, 1.0, 1.0), drawZbothAndXplusOpen);
+ModelType Enemy = ModelType(glm::vec3(1.0, 1.0, 1.0), drawEnemy);
+ModelType Sphere = ModelType(glm::vec3(1.0, 1.0, 1.0), drawSphere);
 
 #define PI 3.1415
 #define HALF_PI PI / 2.0
@@ -187,6 +116,8 @@ ModelInstance instances[] =
     ModelInstance(&Block_ZminusOpen,    glm::vec4(0.0,            0.0,  2 * BLOCK_SIZE, 1.0), glm::vec3(0.0, 0.0, 0.0)),
     ModelInstance(&Block_XbothOpen,     glm::vec4(BLOCK_SIZE,     0.0,  BLOCK_SIZE,     1.0), glm::vec3(0.0, 0.0, 0.0)),
     ModelInstance(&Block_XminusOpen,    glm::vec4(2 * BLOCK_SIZE, 0.0,  BLOCK_SIZE,     1.0), glm::vec3(0.0, 0.0, 0.0)),
+
+    ModelInstance(&Sphere,    glm::vec4(0.0, 0.0, 0.0, 1.0), glm::vec3(0.0, 0.0, 0.0)),
 
     // ModelInstance(&Corridor, glm::vec4(-0.571, -2.3, -10.442, 1.0), glm::vec3(0.0, 0.0, 0.0)),
 };
@@ -262,6 +193,9 @@ bool g_ShowInfoText = true;
 float positionXByTime(float time){
     return sin(time);
 }
+
+// Checa se é possível mover o personagem na direção mostrada e o move
+void tryToMove(glm::vec4 direction);
 
 int main(int argc, char* argv[])
 {
@@ -341,8 +275,7 @@ int main(int argc, char* argv[])
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     string path = "../../data/";
-
-    for(int i = 0; i < 6; i++)
+    for(int i = 0; i < 7; i++)
     {
         ObjModel models((path + modelsList[i]).c_str());
         ComputeNormals(&models);
@@ -366,6 +299,17 @@ int main(int argc, char* argv[])
     glDisable(GL_CULL_FACE);
     // glCullFace(GL_BACK);
     // glFrontFace(GL_CCW);
+
+    BoundingBox wallBB = BoundingBox(
+    glm::vec3(-1.0, 0.0, -1.0),
+    glm::vec3(1.0, 2.0, -1.0));
+
+    BoundingBox boxes[] = {
+        BoundingBox(glm::vec3(-1.0, 0.0, -1.0), glm::vec3(1.0, 2.0, -1.0)),
+        BoundingBox(glm::vec3(1.0, 0.0, -1.0), glm::vec3(1.0, 2.0, 1.0)),
+        BoundingBox(glm::vec3(-1.0, 0.0, -1.0), glm::vec3(-1.0, 2.0, 1.0)),
+    };
+    int boxesArraySize = sizeof(boxes)/sizeof(boxes[0]);
 
     glm::vec4 offset;
     float currentTime = glfwGetTime();
@@ -393,7 +337,7 @@ int main(int argc, char* argv[])
         glUseProgram(program_id);
 
         // Calcula a distância que deve ser percorrida desde o último frame
-            float deltaDistance = positionXByTime(currentTime) - positionXByTime(lastTime);
+        float deltaDistance = positionXByTime(currentTime) - positionXByTime(lastTime);
 
         if(!g_EscapePressed){
 
@@ -402,10 +346,12 @@ int main(int argc, char* argv[])
 
             // Movimentamos o personagem se alguma tecla estiver pressionada
             float speed = 2.0f * (g_ModShift ? 10.0 : 1.0) * (g_ModCtrl ? 0.1 : 1.0);
-            if(g_MovingForward && checkCollisions(g_PlayerCamera)) g_PlayerCamera.position += speed * delta * g_CameraRelativeForward;
-            if(g_MovingBackward) g_PlayerCamera.position -= speed * delta * g_CameraRelativeForward;
-            if(g_MovingLeft) g_PlayerCamera.position += speed * delta * g_CameraRelativeLeft;
-            if(g_MovingRight) g_PlayerCamera.position -= speed * delta * g_CameraRelativeLeft;
+
+            if(g_MovingForward) tryToMove(speed * delta * g_CameraRelativeForward);
+            if(g_MovingBackward) tryToMove(-1.0f * speed * delta * g_CameraRelativeForward);
+            if(g_MovingLeft) tryToMove(speed * delta * g_CameraRelativeLeft);
+            if(g_MovingRight) tryToMove(-1.0f * speed * delta * g_CameraRelativeLeft);
+
             if(g_MovingUp) g_PlayerCamera.position += speed * delta * UP_VECTOR;
             if(g_MovingDown) g_PlayerCamera.position -= speed * delta * UP_VECTOR;
 
@@ -793,6 +739,32 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         fprintf(stdout,"Shaders recarregados!\n");
         fflush(stdout);
     }
+}
+
+void tryToMove(glm::vec4 direction){
+    //Checa se pode fazer o movimento inteiro
+    glm::vec4 newPosition = g_PlayerCamera.position + direction;
+    BoundingBox newPositionBB = BoundingBox(newPosition, 0.2);
+    if(!doObjectCollidesWithInstancesArray(&newPositionBB, instances, maxInstanceId + 1)){
+        g_PlayerCamera.position = newPosition;
+        return;
+    } 
+
+    //Se não dar para fazer o movimento inteiro, checa se dá para fazer o movimento em X
+    glm::vec4 newPositionX = g_PlayerCamera.position + glm::vec4(direction.x, 0.0, 0.0, 0.0);
+    BoundingBox newPositionBBx = BoundingBox(newPositionX, 0.2);
+    if(!doObjectCollidesWithInstancesArray(&newPositionBBx, instances, maxInstanceId + 1)){
+        g_PlayerCamera.position = newPositionX;
+        return;
+    } 
+
+    //Se não dar para fazer o movimento em X, checa se dá para fazer o movimento em Y
+    glm::vec4 newPositionZ = g_PlayerCamera.position + glm::vec4(0.0, 0.0, direction.z, 0.0);
+    BoundingBox newPositionBBZ = BoundingBox(newPositionZ, 0.2);
+    if(!doObjectCollidesWithInstancesArray(&newPositionBBZ, instances, maxInstanceId + 1)){
+        g_PlayerCamera.position = newPositionZ;
+        return;
+    } 
 }
 
 // Definimos o callback para impressão de erros da GLFW no terminal
