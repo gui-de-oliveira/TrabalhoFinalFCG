@@ -367,6 +367,7 @@ void LoadShadersFromFiles()
 
     // Variáveis em "shader_fragment.glsl" para acesso das imagens de textura
     glUseProgram(program_id);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage_Link"), 0);
     glUseProgram(0);
 }
 

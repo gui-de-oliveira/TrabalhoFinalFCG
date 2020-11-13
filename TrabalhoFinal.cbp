@@ -368,7 +368,6 @@
 		<Unit filename="include/glm/vector_relational.hpp" />
 		<Unit filename="include/matrices.h" />
 		<Unit filename="include/model_instance_and_type.h" />
-		<Unit filename="include/model_type.h" />
 		<Unit filename="include/stb_image.h" />
 		<Unit filename="include/tiny_obj_loader.h" />
 		<Unit filename="include/utils.h" />

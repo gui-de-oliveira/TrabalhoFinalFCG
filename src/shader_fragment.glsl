@@ -35,6 +35,10 @@ uniform vec4 bbox_max;
 
 // O valor de saída ("out") de um Fragment Shader é a cor final do fragmento.
 out vec4 color;
+out vec3 color3;
+
+uniform sampler2D TextureImage_Link;
+
 
 // Constantes
 #define M_PI   3.14159265358979323846
@@ -64,9 +68,83 @@ void main()
     // Vetor que define o sentido da câmera em relação ao ponto atual.
     vec4 v = normalize(camera_position - p);
 
+    // Vetor que define o sentido da reflex�o especular ideal.
+    vec4 r = -l + 2*n*dot(n,l);
+
+    // Coordenadas de textura U e V
+    float U = 0.0;
+    float V = 0.0;
+
+    // Parametros que definem as propriedades espectrais da superficie
+    vec3 Kd; // Refletancia difusa
+    vec3 Ks; // Refletancia especular
+    vec3 Ka; // Refletancia ambiente
+    float q; // Expoente especular para o modelo de iluminacao de Phong
+
+    if(object_id == LINK){
+        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
+
+        vec4 p_vec = normalize(position_model - bbox_center);
+
+        float theta = atan(p_vec.x, p_vec.z);
+        float phi = asin(p_vec.y);
+
+        U = (theta + M_PI)/(2*M_PI);
+        V = (phi + M_PI_2)/M_PI;
+    }
+    // if(object_id == LINK){
+    //     float minx = bbox_min.x;
+    //     float maxx = bbox_max.x;
+
+    //     float miny = bbox_min.y;
+    //     float maxy = bbox_max.y;
+
+    //     float minz = bbox_min.z;
+    //     float maxz = bbox_max.z;
+
+    //     U = (position_model.x - bbox_min.x) / (bbox_max.x - bbox_min.x);
+    //     V = (position_model.y - bbox_min.y) / (bbox_max.y - bbox_min.y);
+    // }
+    if(object_id == CORRIDOR){
+        Kd = vec3(0.5255, 0.0078, 0.0078);
+        Ks = vec3(0.8,0.8,0.8);
+        Ka = Kd/2;
+        q = 32.0;
+    }
+    vec3 Kd0 = texture(TextureImage_Link, vec2(U,V)).rgb;
+    // else{
+    //     Kd = vec3(0.0,0.0,0.0);
+    //     Ks = vec3(0.0,0.0,0.0);
+    //     Ka = vec3(0.0,0.0,0.0);
+    //     q = 1.0;
+    // }
+    // Por algum motivo todo o corredor fica preto usando isso
+
+    // Espectro da fonte de iluminacao
+    vec3 I = vec3(1.0,1.0,1.0);
+
+    // Espectro da luz ambiente
+    vec3 Ia = vec3(0.2,0.2,0.2);
+
+    // Termo difuso utilizando a lei dos cossenos de Lambert
+    vec3 lambert_diffuse_term = Kd*I*max(0,dot(n,l)); // PREENCHA AQUI o termo difuso de Lambert
+
+    // Termo ambiente
+    vec3 ambient_term = Ka*Ia;
+
+    // Termo especular utilizando o modelo de iluminacao de Phong
+    vec3 phong_specular_term  = Ks*I*pow(max(0,dot(r,v)),q);
+
+    // Cor final do fragmento calculada com uma combinacao dos termos difuso,
+    // especular, e ambiente. Veja slide 129 do documento Aula_17_e_18_Modelos_de_Iluminacao.pdf.
+    color3 = lambert_diffuse_term + ambient_term + phong_specular_term;
+    
     // Equação de Iluminação
     float lambert = max(0,dot(n,l));
+    color3 += Kd0 * (lambert + 0.01);
+    color = vec4(color3.x, color3.y, color3.z, 1.0);
 
-    color = vec4(vec3(1.0, 1.0, 1.0) * (lambert + 0.01), 1.0);
+    //color = vec4(vec3(1.0, 1.0, 1.0) * (lambert + 0.01), 1.0);
+    color = pow(color, vec4(1.0,1.0,1.0,1.0)/2.2);
 }
 

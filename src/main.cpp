@@ -76,6 +76,8 @@ bool collisionDetect (Camera g_PlayerCamera);
 #define LINK  3
 #define CORRIDOR 4
 
+
+
 string modelsList[6] = {
     "Link0.obj",
     "camera.obj",
@@ -85,7 +87,14 @@ string modelsList[6] = {
     "Block.obj",
 };
 
-bool collisionDetect (Camera g_PlayerCamera){
+string wallsModelsList[4] = {
+    "WallY+_4",
+    "WallY-_5",
+    "WallX+_2",
+    "WallX-_3",
+};
+
+bool collisionDetect (Camera g_PlayerCamera, string wallName){
     // bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
     //     two.Position.x + two.Size.x >= one.Position.x;
 
@@ -93,15 +102,22 @@ bool collisionDetect (Camera g_PlayerCamera){
     //     two.Position.y + two.Size.y >= one.Position.y;
     // // collision only if on both axes
     // return collisionX && collisionZ;
-    //for (int i=0; i<g_VirtualScene.size(); i++) {
-    bool collisionX = g_PlayerCamera.position.x <= g_VirtualScene["WallY+_4"].bbox_max.x
-                   && g_PlayerCamera.position.x >= g_VirtualScene["WallY+_4"].bbox_min.x;
+    bool collisionX = g_PlayerCamera.position.x <= g_VirtualScene[wallName].bbox_max.x
+                   && g_PlayerCamera.position.x >= g_VirtualScene[wallName].bbox_min.x;
 
-    bool collisionZ = g_PlayerCamera.position.z <= g_VirtualScene["WallY+_4"].bbox_max.z
-                   && g_PlayerCamera.position.z >= g_VirtualScene["WallY+_4"].bbox_min.z;
-    //}
+    bool collisionZ = g_PlayerCamera.position.z <= g_VirtualScene[wallName].bbox_max.z
+                   && g_PlayerCamera.position.z >= g_VirtualScene[wallName].bbox_min.z;
 
     return collisionX && collisionZ;
+}
+
+bool checkCollisions(Camera g_PlayerCamera){
+    for(string wallName : wallsModelsList){
+        if(collisionDetect(g_PlayerCamera, wallName))
+            return false;       // Sem colisões
+    }
+
+    return true;
 }
 
 void drawCorridorObject(){
@@ -321,6 +337,8 @@ int main(int argc, char* argv[])
     //
     LoadShadersFromFiles();
 
+    LoadTextureImage("../../data/cameratitlemenu_alb.png");
+
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     string path = "../../data/";
 
@@ -384,7 +402,7 @@ int main(int argc, char* argv[])
 
             // Movimentamos o personagem se alguma tecla estiver pressionada
             float speed = 2.0f * (g_ModShift ? 10.0 : 1.0) * (g_ModCtrl ? 0.1 : 1.0);
-            if(g_MovingForward && !collisionDetect(g_PlayerCamera)) g_PlayerCamera.position += speed * delta * g_CameraRelativeForward;
+            if(g_MovingForward && checkCollisions(g_PlayerCamera)) g_PlayerCamera.position += speed * delta * g_CameraRelativeForward;
             if(g_MovingBackward) g_PlayerCamera.position -= speed * delta * g_CameraRelativeForward;
             if(g_MovingLeft) g_PlayerCamera.position += speed * delta * g_CameraRelativeLeft;
             if(g_MovingRight) g_PlayerCamera.position -= speed * delta * g_CameraRelativeLeft;
