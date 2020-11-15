@@ -2,6 +2,7 @@
 #define _BLOCK_H
 
 #include <functional>
+#include <map>
 #include "model_instance_and_type.h"
 #include "../src/modelrendering.h"
 
@@ -11,7 +12,7 @@ void drawBlockGeneric(bool drawXplus, bool drawXminus, bool drawZplus, bool draw
     if (drawZplus) DrawVirtualObject("WallY-_5");
     if (drawXplus) DrawVirtualObject("WallX+_2");
     if (drawXminus) DrawVirtualObject("WallX-_3");
-    DrawVirtualObject("Ceiling_6");
+    // DrawVirtualObject("Ceiling_6");
 }
 
 std::function<void()> createBlockDrawFunction (bool drawXplus, bool drawXminus, bool drawZplus, bool drawZminus) {
@@ -48,12 +49,35 @@ ModelType createBlockModelType(
     );
 }
 
-ModelType Block_ZminusOpen = createBlockModelType(true, true, true, false);
-ModelType Block_ZplusOpen = createBlockModelType(true, true, false, true);
-ModelType Block_ZOpen = createBlockModelType(true, true, false, false);
-ModelType Block_XminusOpen = createBlockModelType(true, false, true, true);
-ModelType Block_XbothOpen = createBlockModelType(false, false, true, true);
-ModelType Block_XplusAndZOpen = createBlockModelType(false, true, false, false);
+ModelType Blocks[] = {
+    createBlockModelType(false, false, false, false),
+    createBlockModelType(false, false, false, true),
+    createBlockModelType(false, false, true, false),
+    createBlockModelType(false, false, true, true),
+    createBlockModelType(false, true, false, false),
+    createBlockModelType(false, true, false, true),
+    createBlockModelType(false, true, true, false),
+    createBlockModelType(false, true, true, true),
+    createBlockModelType(true, false, false, false),
+    createBlockModelType(true, false, false, true),
+    createBlockModelType(true, false, true, false),
+    createBlockModelType(true, false, true, true),
+    createBlockModelType(true, true, false, false),
+    createBlockModelType(true, true, false, true),
+    createBlockModelType(true, true, true, false),
+    createBlockModelType(true, true, true, true),
+};
+
+ModelType* getBlock(bool Xplus, bool Xminus, bool Zplus, bool Zminus){
+    int id = Xplus * 8 + Xminus * 4 + Zplus * 2 + Zminus * 1;
+    return &Blocks[id];
+}
+
+#define BLOCK_SIZE 2
+
+ModelInstance createBlock(glm::vec2 position, bool Xplus, bool Xminus, bool Yplus, bool Yminus){
+    return ModelInstance(getBlock(Xminus, Xplus, Yplus, Yminus), glm::vec4(-position.x * BLOCK_SIZE, 0.0, position.y * BLOCK_SIZE, 1.0));
+}
 
 #endif // _BLOCK_H
 // vim: set spell spelllang=pt_br :

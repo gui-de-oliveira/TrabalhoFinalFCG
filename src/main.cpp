@@ -126,16 +126,23 @@ int g_InstanceSelectedId = 0;
 std::vector<ModelInstance> instances =
 {
     //This item should go first!! [so I know which id is the enemyInstance]
-    ModelInstance(&Enemy, glm::vec4(4.0, 0.0, 2.0, 1.0), 0.0056),
+    ModelInstance(&Enemy, glm::vec4(3.0, 0.0, 0.0, 1.0), 0.0056),
     ModelInstance(&Dragon,    glm::vec4(0.0, -1.15, 15.0, 1.0), glm::vec3(0.0, PI, 0.0), 13.4),
     ModelInstance(&Sphere,    glm::vec4(0.0, 0.5, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0),
 
-    //                                            Xpos            Ypos  Zpos
-    ModelInstance(&Block_ZplusOpen,     glm::vec4(0.0,            0.0,  0.0,            1.0)),
-    ModelInstance(&Block_XplusAndZOpen, glm::vec4(0.0,            0.0,  BLOCK_SIZE,     1.0)),
-    ModelInstance(&Block_ZOpen,         glm::vec4(0.0,            0.0,  2 * BLOCK_SIZE, 1.0)),
-    ModelInstance(&Block_XbothOpen,     glm::vec4(BLOCK_SIZE,     0.0,  BLOCK_SIZE,     1.0)),
-    ModelInstance(&Block_XminusOpen,    glm::vec4(2 * BLOCK_SIZE, 0.0,  BLOCK_SIZE,     1.0)),
+    createBlock(glm::vec2(0, -1), true, true, false, true),
+    createBlock(glm::vec2(0, 0), true, false, false, false),
+    createBlock(glm::vec2(0, 1), true, false, false, false),
+    createBlock(glm::vec2(0, 2), true, true, false, false),
+
+    createBlock(glm::vec2(-1, 0), false, false, false, true),
+    createBlock(glm::vec2(-1, 1), false, false, true, false),
+
+    createBlock(glm::vec2(-2, 0), false, false, false, true),
+    createBlock(glm::vec2(-2, 1), false, false, true, false),
+
+    createBlock(glm::vec2(-3, 0), false, true, false, true),
+    createBlock(glm::vec2(-3, 1), false, true, true, false),
 
     ModelInstance(&Sphere,    glm::vec4(0.0, 0.0, 0.0, 1.0)),
 
@@ -219,6 +226,78 @@ float positionXByTime(float time){
 
 // Checa se é possível mover o personagem na direção mostrada e o move
 void tryToMove(glm::vec4 direction);
+
+glm::vec2 getCubicBezierPoint(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, glm::vec2 p4, float dt){
+    auto interpolate = [=](float n1, float n2 , float perc ) {
+        float diff = n2 - n1;
+        return n1 + ( diff * perc );
+    };
+
+    float xa = interpolate(p1.x, p2.x, dt);
+    float ya = interpolate(p1.y, p2.y, dt);
+    float xb = interpolate(p2.x, p3.x, dt);
+    float yb = interpolate(p2.y, p3.y, dt);
+    float xc = interpolate(p3.x, p4.x, dt);
+    float yc = interpolate(p3.y, p4.y, dt);
+
+    float xm = interpolate(xa, xb, dt);
+    float ym = interpolate(ya, yb, dt);
+    float xn = interpolate(xb, xc, dt);
+    float yn = interpolate(yb, yc, dt);
+
+    float x = interpolate(xm , xn , dt);
+    float y = interpolate(ym , yn , dt);
+
+    return glm::vec2(x, y);
+};
+
+glm::vec4 getPath(float time) {
+    //Transforma valor time em um valor do intervalo entre 0 e maxValue,
+    //repetindo ao chega em maxValue
+    auto repeating = [](float time, float maxValue){
+        float t = floor(time/maxValue);
+        return time - t * maxValue;
+    };
+
+    float height = 1.0;
+    float width = 1.5;
+
+    float dt = repeating(time, 4);
+    float ds = repeating(dt, 1);
+
+    auto p = [=](float x, float y){
+        return glm::vec2(x * width, y * height);
+    };
+
+    glm::vec2 point =
+          dt < 1 ? getCubicBezierPoint(p(1, -1), p(0, -1), p(0, 1), p(1, 1), ds)
+        : dt < 2 ? getCubicBezierPoint(p(1, 1), p(1, 1), p(2, 1), p(2, 1), ds)
+        : dt < 3 ? getCubicBezierPoint(p(2, 1), p(3, 1), p(3, -1), p(2, -1), ds)
+                 : getCubicBezierPoint(p(2, -1), p(2, -1), p(1, -1), p(1, -1), ds);
+
+    return glm::vec4(point.x, 0.0, point.y, 1.0);
+};
+
+float totalTime = 0.0;
+glm::vec4 getEnemyPosition(float delta) {
+    float distance = delta * 1.0;
+
+    glm::vec4 initialPos = getPath(totalTime);
+    glm::vec4 currentPos = initialPos;
+    float totalDistance = 0.0;
+
+    while(totalDistance < distance){
+        totalTime += 0.0001;
+        glm::vec4 dist = getPath(totalTime);
+
+        glm::vec4 diff = dist - currentPos;
+        totalDistance += sqrt(pow(diff.x, 2) + pow(diff.y, 2) + pow(diff.z, 2));
+        currentPos = dist;
+    }
+
+    glm::vec4 diffor = currentPos - initialPos;
+    return diffor;
+};
 
 int main(int argc, char* argv[])
 {
@@ -323,17 +402,6 @@ int main(int argc, char* argv[])
     // glCullFace(GL_BACK);
     // glFrontFace(GL_CCW);
 
-    BoundingBox wallBB = BoundingBox(
-    glm::vec3(-1.0, 0.0, -1.0),
-    glm::vec3(1.0, 2.0, -1.0));
-
-    BoundingBox boxes[] = {
-        BoundingBox(glm::vec3(-1.0, 0.0, -1.0), glm::vec3(1.0, 2.0, -1.0)),
-        BoundingBox(glm::vec3(1.0, 0.0, -1.0), glm::vec3(1.0, 2.0, 1.0)),
-        BoundingBox(glm::vec3(-1.0, 0.0, -1.0), glm::vec3(-1.0, 2.0, 1.0)),
-    };
-    int boxesArraySize = sizeof(boxes)/sizeof(boxes[0]);
-
     bool isGameWon = false;
 
     glm::vec4 offset;
@@ -357,7 +425,7 @@ int main(int argc, char* argv[])
         glViewport(0, 0, g_Width, g_Height);
 
         //Pintamos tudo de branco e reiniciamos o Z-BUFFER
-        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(program_id);
 
@@ -369,8 +437,17 @@ int main(int argc, char* argv[])
 
         if(!g_EscapePressed){
 
-            enemyInstance->position.x += deltaDistance;
-            enemyInstance->rotation.y = deltaDistance < 0 ? -HALF_PI : HALF_PI;
+            glm::vec4 direction = getEnemyPosition(delta);
+            enemyInstance->position += direction;
+
+            glm::vec2 direction2d = glm::vec2(direction.x, direction.z);
+            glm::vec2 left = glm::vec2(1.0, 0.0);
+
+            float dot = direction2d.x * left.x + direction2d.y * left.y;
+            float det = direction2d.x * left.y - direction2d.y * left.x;
+            float angle = atan2(det, dot);
+
+            enemyInstance->rotation.y = angle + HALF_PI;
 
             auto offset = [=](float speed, float amp){ return (sin(currentTime * speed) - sin(lastTime * speed)) * amp; };
 
@@ -463,7 +540,6 @@ int main(int argc, char* argv[])
             fmt << "PlayerCamera Stats"<< endl;
             fmt << "Phi: " << g_PlayerCamera.phi << " Theta:" << g_PlayerCamera.theta << endl;
             fmt << "X: " << g_PlayerCamera.position.x << " Y:" << g_PlayerCamera.position.y << " Z:" << g_PlayerCamera.position.z << endl;
-            fmt << distance << endl;
         } else if (g_Mode.compare("MOVE") == 0) {
             fmt << "Instance Stats"<< endl;
             fmt << "ObjectId: " << g_InstanceSelectedId << endl;
@@ -525,13 +601,6 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
         DrawVirtualObject("camera_reference");
     }
 
-    // model = Matrix_Translate(-4.82, 0.42, -17.29)
-    //     * Matrix_Scale(0.5f, 0.5f, 0.5f);
-
-    // glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-    // glUniform1i(object_id_uniform, LINK);
-    // DrawVirtualObject("demyx");
-
     for(int i = 0; i < instances.size(); i++) {
         ModelInstance instance =  instances[i];
 
@@ -545,14 +614,6 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         instance.object->drawObject();
     }
-
-    // model = Matrix_Translate(-10, 0.42, -17.29)
-    //     * Matrix_Scale(0.5f, 0.5f, 0.5f)
-    //     * Matrix_Rotate_Z(M_PI_2);
-    // glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-    // glUniform1i(object_id_uniform, CORRIDOR);
-    // DrawVirtualObject("corridor2");
-
 }
 
 // Função que pega a matriz M e guarda a mesma no topo da pilha
@@ -799,7 +860,7 @@ void tryToMove(glm::vec4 direction){
     if(!doObjectCollidesWithInstancesArray(&newPositionBB, instances)){
         g_PlayerCamera.position = newPosition;
         return;
-    } 
+    }
 
     //Se não dar para fazer o movimento inteiro, checa se dá para fazer o movimento em X
     glm::vec4 newPositionX = g_PlayerCamera.position + glm::vec4(direction.x, 0.0, 0.0, 0.0);
@@ -807,7 +868,7 @@ void tryToMove(glm::vec4 direction){
     if(!doObjectCollidesWithInstancesArray(&newPositionBBx, instances)){
         g_PlayerCamera.position = newPositionX;
         return;
-    } 
+    }
 
     //Se não dar para fazer o movimento em X, checa se dá para fazer o movimento em Y
     glm::vec4 newPositionZ = g_PlayerCamera.position + glm::vec4(0.0, 0.0, direction.z, 0.0);
@@ -815,7 +876,7 @@ void tryToMove(glm::vec4 direction){
     if(!doObjectCollidesWithInstancesArray(&newPositionBBZ, instances)){
         g_PlayerCamera.position = newPositionZ;
         return;
-    } 
+    }
 }
 
 // Definimos o callback para impressão de erros da GLFW no terminal
