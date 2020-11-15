@@ -48,13 +48,6 @@
 #include "model_instance_and_type.h"
 #include "block.h"
 
-#define M_PI   3.14159265358979323846
-#define M_PI_2 1.57079632679489661923
-
-// Declaração de funções utilizadas para pilha de matrizes de modelagem.
-void PushMatrix(glm::mat4 M);
-void PopMatrix(glm::mat4& M);
-
 // Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowFramesPerSecond(GLFWwindow* window);
@@ -145,8 +138,6 @@ std::vector<ModelInstance> instances =
     createBlock(glm::vec2(-3, 1), false, true, true, false),
 
     ModelInstance(&Sphere,    glm::vec4(0.0, 0.0, 0.0, 1.0)),
-
-    // ModelInstance(&Corridor, glm::vec4(-0.571, -2.3, -10.442, 1.0), glm::vec3(0.0, 0.0, 0.0)),
 };
 ModelInstance* g_InstanceSelected = &instances[0];
 
@@ -185,9 +176,6 @@ bool isCursorDisabled = true;
 glm::vec4 g_Position = glm::vec4(-0.06f, 0.0f, 1.90f, 1.0f);
 glm::vec3 g_Rotation = glm::vec3(0.0f, 0.0f, 0.0f);
 
-// Pilha que guardará as matrizes de modelagem.
-std::stack<glm::mat4>  g_MatrixStack;
-
 string g_Mode = "PLAYER";
 
 // Razão de proporção da janela (largura/altura). Veja função FramebufferSizeCallback().
@@ -195,26 +183,10 @@ float g_ScreenRatio = 1.0f;
 float g_Width = 800;
 float g_Height= 600;
 
-// Ângulos de Euler que controlam a rotação de um dos cubos da cena virtual
-float g_AngleX = 0.0f;
-float g_AngleY = 0.0f;
-float g_AngleZ = 0.0f;
-
 // "g_LeftMouseButtonPressed = true" se o usuário está com o botão esquerdo do mouse
 // pressionado no momento atual. Veja função MouseButtonCallback().
 bool g_RightMouseButtonPressed = false; // Análogo para botão direito do mouse
 bool g_MiddleMouseButtonPressed = false; // Análogo para botão do meio do mouse
-
-// Variáveis que controlam rotação do antebraço
-float g_ForearmAngleZ = 0.0f;
-float g_ForearmAngleX = 0.0f;
-
-// Variáveis que controlam translação do torso
-float g_TorsoPositionX = 0.0f;
-float g_TorsoPositionY = 0.0f;
-
-// Variável que controla o tipo de projeção utilizada: perspectiva ou ortográfica.
-bool g_UsePerspectiveProjection = true;
 
 // Variável que controla se o texto informativo será mostrado na tela.
 bool g_ShowInfoText = true;
@@ -613,26 +585,6 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
 
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         instance.object->drawObject();
-    }
-}
-
-// Função que pega a matriz M e guarda a mesma no topo da pilha
-void PushMatrix(glm::mat4 M)
-{
-    g_MatrixStack.push(M);
-}
-
-// Função que remove a matriz atualmente no topo da pilha e armazena a mesma na variável M
-void PopMatrix(glm::mat4& M)
-{
-    if ( g_MatrixStack.empty() )
-    {
-        M = Matrix_Identity();
-    }
-    else
-    {
-        M = g_MatrixStack.top();
-        g_MatrixStack.pop();
     }
 }
 
