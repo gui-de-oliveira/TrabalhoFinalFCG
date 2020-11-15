@@ -77,7 +77,7 @@ bool collisionDetect (Camera g_PlayerCamera);
 #define LINK  3
 #define CORRIDOR 4
 
-string modelsList[7] = {
+std::vector<string> modelsList = {
     "Link0.obj",
     "camera.obj",
     "king.obj",
@@ -85,11 +85,14 @@ string modelsList[7] = {
     "corridor2.obj",
     "Block.obj",
     "sphere.obj",
+    "dragon.obj",
+    "reaper.obj",
 };
 
 void drawEnemy(){
     glUniform1i(object_id_uniform, LINK);
-    DrawVirtualObject("demyx");
+    DrawVirtualObject("foe120_model_foe120_model.001_assets_textures_em0C1_t02");
+    DrawVirtualObject("foe120_model_foe120_model.001_assets_textures_em0C1_t01");
 }
 
 void drawSphere(){
@@ -97,34 +100,52 @@ void drawSphere(){
     DrawVirtualObject("Sphere");
 }
 
+void drawDragon(){
+    glUniform1i(object_id_uniform, LINK);
+    DrawVirtualObject("Body__ArmMT_Body__ArmMT_ArmMT");
+    DrawVirtualObject("Body__BodyMT_Body__BodyMT_BodyMT");
+    DrawVirtualObject("HeadUpper__HeadMT_HeadUpper__HeadMT_HeadMT");
+    DrawVirtualObject("EyeBall__EyeMT_EyeBall__EyeMT_EyeMT");
+    DrawVirtualObject("Jaw__HeadMT_Jaw__HeadMT_HeadMT.001");
+    DrawVirtualObject("Toungue__HeadMT_Toungue__HeadMT_HeadMT.002");
+    DrawVirtualObject("LowerBody__BodyMT_LowerBody__BodyMT_BodyMT.001");
+    DrawVirtualObject("Maku__HeadMT_Maku__HeadMT_HeadMT.003");
+    DrawVirtualObject("Wing__WingMT_Wing__WingMT_WingMT");
+    DrawVirtualObject("WingFrame__WingMT_WingFrame__WingMT_WingMT.001");
+}
+
 ModelType Enemy = ModelType(glm::vec3(1.0, 1.0, 1.0), drawEnemy);
 ModelType Sphere = ModelType(glm::vec3(1.0, 1.0, 1.0), drawSphere);
+ModelType Dragon = ModelType(glm::vec3(0.01, 0.01, 0.01), drawDragon);
 
 #define PI 3.1415
 #define HALF_PI PI / 2.0
 #define BLOCK_SIZE 2
 
 int g_InstanceSelectedId = 0;
-ModelInstance instances[] =
+std::vector<ModelInstance> instances =
 {
     //This item should go first!! [so I know which id is the enemyInstance]
-    ModelInstance(&Enemy, glm::vec4(4.0, 0.0, 2.0, 1.0), glm::vec3(0.0, 0.0, 0.0)),
+    ModelInstance(&Enemy, glm::vec4(4.0, 0.0, 2.0, 1.0), 0.0056),
+    ModelInstance(&Dragon,    glm::vec4(0.0, -1.15, 15.0, 1.0), glm::vec3(0.0, PI, 0.0), 13.4),
+    ModelInstance(&Sphere,    glm::vec4(0.0, 0.5, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0),
 
     //                                            Xpos            Ypos  Zpos
-    ModelInstance(&Block_ZplusOpen,     glm::vec4(0.0,            0.0,  0.0,            1.0), glm::vec3(0.0, 0.0, 0.0)),
-    ModelInstance(&Block_XplusAndZOpen, glm::vec4(0.0,            0.0,  BLOCK_SIZE,     1.0), glm::vec3(0.0, 0.0, 0.0)),
-    ModelInstance(&Block_ZminusOpen,    glm::vec4(0.0,            0.0,  2 * BLOCK_SIZE, 1.0), glm::vec3(0.0, 0.0, 0.0)),
-    ModelInstance(&Block_XbothOpen,     glm::vec4(BLOCK_SIZE,     0.0,  BLOCK_SIZE,     1.0), glm::vec3(0.0, 0.0, 0.0)),
-    ModelInstance(&Block_XminusOpen,    glm::vec4(2 * BLOCK_SIZE, 0.0,  BLOCK_SIZE,     1.0), glm::vec3(0.0, 0.0, 0.0)),
+    ModelInstance(&Block_ZplusOpen,     glm::vec4(0.0,            0.0,  0.0,            1.0)),
+    ModelInstance(&Block_XplusAndZOpen, glm::vec4(0.0,            0.0,  BLOCK_SIZE,     1.0)),
+    ModelInstance(&Block_ZOpen,         glm::vec4(0.0,            0.0,  2 * BLOCK_SIZE, 1.0)),
+    ModelInstance(&Block_XbothOpen,     glm::vec4(BLOCK_SIZE,     0.0,  BLOCK_SIZE,     1.0)),
+    ModelInstance(&Block_XminusOpen,    glm::vec4(2 * BLOCK_SIZE, 0.0,  BLOCK_SIZE,     1.0)),
 
-    ModelInstance(&Sphere,    glm::vec4(0.0, 0.0, 0.0, 1.0), glm::vec3(0.0, 0.0, 0.0)),
+    ModelInstance(&Sphere,    glm::vec4(0.0, 0.0, 0.0, 1.0)),
 
     // ModelInstance(&Corridor, glm::vec4(-0.571, -2.3, -10.442, 1.0), glm::vec3(0.0, 0.0, 0.0)),
 };
 ModelInstance* g_InstanceSelected = &instances[0];
-int maxInstanceId = sizeof(instances)/sizeof(instances[0]) - 1;
 
 ModelInstance* enemyInstance = &instances[0];
+ModelInstance* dragonInstance = &instances[1];
+ModelInstance* endGame = &instances[2];
 
 // Abaixo definimos variáveis globais utilizadas em várias funções do código.
 // Vetor "up" fixado para apontar para o "céu" (eito Y global)
@@ -147,6 +168,8 @@ bool g_EscapePressed = false;
 bool g_IsZPressed = false;
 bool g_IsXPressed = false;
 bool g_IsCPressed = false;
+bool g_IsVPressed = false;
+
 bool g_ModShift = false;
 bool g_ModCtrl = false;
 
@@ -275,7 +298,7 @@ int main(int argc, char* argv[])
 
     // Construímos a representação de objetos geométricos através de malhas de triângulos
     string path = "../../data/";
-    for(int i = 0; i < 7; i++)
+    for(int i = 0; i < modelsList.size(); i++)
     {
         ObjModel models((path + modelsList[i]).c_str());
         ComputeNormals(&models);
@@ -311,6 +334,8 @@ int main(int argc, char* argv[])
     };
     int boxesArraySize = sizeof(boxes)/sizeof(boxes[0]);
 
+    bool isGameWon = false;
+
     glm::vec4 offset;
     float currentTime = glfwGetTime();
     float lastTime = currentTime;
@@ -339,10 +364,32 @@ int main(int argc, char* argv[])
         // Calcula a distância que deve ser percorrida desde o último frame
         float deltaDistance = positionXByTime(currentTime) - positionXByTime(lastTime);
 
+        glm::vec4 d = (endGame->position - g_PlayerCamera.position);
+        float distance = sqrt(d.x * d.x + d.y * d.y + d.z * d.z);
+
         if(!g_EscapePressed){
 
             enemyInstance->position.x += deltaDistance;
             enemyInstance->rotation.y = deltaDistance < 0 ? -HALF_PI : HALF_PI;
+
+            auto offset = [=](float speed, float amp){ return (sin(currentTime * speed) - sin(lastTime * speed)) * amp; };
+
+            dragonInstance->position.y += deltaDistance;
+
+            if(!isGameWon){
+                endGame->scale *= 1 + offset(2.5, 0.3);
+            }
+
+            if(!isGameWon && distance < 0.5){
+                cout << "You won!!!";
+                endGame->scale = glm::vec3(0.0, 0.0, 0.0);
+                isGameWon = true;
+            }
+
+            //Scan for player
+
+
+            //Stop if finds him [game over]
 
             // Movimentamos o personagem se alguma tecla estiver pressionada
             float speed = 2.0f * (g_ModShift ? 10.0 : 1.0) * (g_ModCtrl ? 0.1 : 1.0);
@@ -368,6 +415,7 @@ int main(int argc, char* argv[])
             if(g_IsZPressed) g_InstanceSelected->rotation.x += delta * (g_ModShift ? -1 : 1);
             if(g_IsXPressed) g_InstanceSelected->rotation.y += delta * (g_ModShift ? -1 : 1);
             if(g_IsCPressed) g_InstanceSelected->rotation.z += delta * (g_ModShift ? -1 : 1);
+            if(g_IsVPressed) g_InstanceSelected->scale *= (g_ModShift ? (1 - delta) : (1 + delta));
         }
 
         // Computamos a matriz "View" utilizando os parâmetros da câmera para
@@ -415,11 +463,13 @@ int main(int argc, char* argv[])
             fmt << "PlayerCamera Stats"<< endl;
             fmt << "Phi: " << g_PlayerCamera.phi << " Theta:" << g_PlayerCamera.theta << endl;
             fmt << "X: " << g_PlayerCamera.position.x << " Y:" << g_PlayerCamera.position.y << " Z:" << g_PlayerCamera.position.z << endl;
+            fmt << distance << endl;
         } else if (g_Mode.compare("MOVE") == 0) {
             fmt << "Instance Stats"<< endl;
             fmt << "ObjectId: " << g_InstanceSelectedId << endl;
             fmt << "Position X: " << g_InstanceSelected->position.x << " Y:" << g_InstanceSelected->position.y << " Z:" << g_InstanceSelected->position.z << endl;
             fmt << "Rotation X: " << g_InstanceSelected->rotation.x << " Y:" << g_InstanceSelected->rotation.y << " Z:" << g_InstanceSelected->rotation.z << endl;
+            fmt << "Scale X: " << g_InstanceSelected->scale.x << " Y:" << g_InstanceSelected->scale.y << " Z:" << g_InstanceSelected->scale.z << endl;
         }
 
         PrintStringTopLeft(window, fmt.str());
@@ -482,7 +532,7 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
     // glUniform1i(object_id_uniform, LINK);
     // DrawVirtualObject("demyx");
 
-    for(int i = 0; i < maxInstanceId + 1; i++) {
+    for(int i = 0; i < instances.size(); i++) {
         ModelInstance instance =  instances[i];
 
         model = Matrix_Translate(instance.position.x, instance.position.y, instance.position.z)
@@ -701,8 +751,8 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_RIGHT && action == GLFW_PRESS) {
         g_InstanceSelectedId++;
 
-        if(g_InstanceSelectedId > maxInstanceId){
-            g_InstanceSelectedId = maxInstanceId;
+        if(g_InstanceSelectedId > instances.size() - 1){
+            g_InstanceSelectedId = 0;
         }
 
         g_InstanceSelected = &instances[g_InstanceSelectedId];
@@ -722,6 +772,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     if (key == GLFW_KEY_Z) g_IsZPressed = IsActionPressed(action);
     if (key == GLFW_KEY_X) g_IsXPressed = IsActionPressed(action);
     if (key == GLFW_KEY_C) g_IsCPressed = IsActionPressed(action);
+    if (key == GLFW_KEY_V) g_IsVPressed = IsActionPressed(action);
 
     if(key == GLFW_KEY_P && IsActionPressed(action)) g_Mode = "PLAYER";
     if(key == GLFW_KEY_O && IsActionPressed(action)) g_Mode = "MOVE";
@@ -745,7 +796,7 @@ void tryToMove(glm::vec4 direction){
     //Checa se pode fazer o movimento inteiro
     glm::vec4 newPosition = g_PlayerCamera.position + direction;
     BoundingBox newPositionBB = BoundingBox(newPosition, 0.2);
-    if(!doObjectCollidesWithInstancesArray(&newPositionBB, instances, maxInstanceId + 1)){
+    if(!doObjectCollidesWithInstancesArray(&newPositionBB, instances)){
         g_PlayerCamera.position = newPosition;
         return;
     } 
@@ -753,7 +804,7 @@ void tryToMove(glm::vec4 direction){
     //Se não dar para fazer o movimento inteiro, checa se dá para fazer o movimento em X
     glm::vec4 newPositionX = g_PlayerCamera.position + glm::vec4(direction.x, 0.0, 0.0, 0.0);
     BoundingBox newPositionBBx = BoundingBox(newPositionX, 0.2);
-    if(!doObjectCollidesWithInstancesArray(&newPositionBBx, instances, maxInstanceId + 1)){
+    if(!doObjectCollidesWithInstancesArray(&newPositionBBx, instances)){
         g_PlayerCamera.position = newPositionX;
         return;
     } 
@@ -761,7 +812,7 @@ void tryToMove(glm::vec4 direction){
     //Se não dar para fazer o movimento em X, checa se dá para fazer o movimento em Y
     glm::vec4 newPositionZ = g_PlayerCamera.position + glm::vec4(0.0, 0.0, direction.z, 0.0);
     BoundingBox newPositionBBZ = BoundingBox(newPositionZ, 0.2);
-    if(!doObjectCollidesWithInstancesArray(&newPositionBBZ, instances, maxInstanceId + 1)){
+    if(!doObjectCollidesWithInstancesArray(&newPositionBBZ, instances)){
         g_PlayerCamera.position = newPositionZ;
         return;
     } 

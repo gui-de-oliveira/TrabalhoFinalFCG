@@ -1,17 +1,21 @@
 # TrabalhoFinalFCG
 
 ## TODO
+
 - [x] Utilizar no máximo 30% de código pronto
 - [x] possibilitar interação em tempo real.
 - [x] Possuir algum objetivo e lógica de controle não-trivial
 - [x] Deve utilizar Model Matrix, Projection Matrix e View Matrix
 - [x] possibilitar interação com o usuário através do mouse e do teclado.
-- [ ] Objetos virtuais representados através de malhas poligonais complexas (malhas de triângulos). (complexidade igual ou maior que o modelo "cow.obj")
+- [x] Objetos virtuais representados através de malhas poligonais complexas (malhas de triângulos). (complexidade igual ou maior que o modelo "cow.obj")
 - [x] Transformações geométricas de objetos virtuais através da interação com o teclado e/ou mouse
 - [ ] Controle de câmeras virtuais look-at
 - [x] Controle de câmeras virtuais câmera livre
 - [x] No mínimo um objeto virtual deve ser copiado com duas ou mais instâncias, isto é, utilizando duas ou mais Model matrix aplicadas ao mesmo conjunto de vértices.
-- [ ] No mínimo três tipos de teste de intersecção (exemplo, um cubo-cubo, um cubo-plano, e um ponto-esfera). (1/3)
+- [ ] No mínimo três tipos de teste de intersecção (exemplo, um cubo-cubo, um cubo-plano, e um ponto-esfera). (2/3)...
+- [x] Tipo de intersecção I - Intersecção entre cubos (AABB)
+- [x] Tipo de intersecção II - Intersecção entre esfera-ponto
+- [ ] Tipo de intersecção III - ?
 - [ ] No mínimo sua aplicação deve incluir objetos com os seguintes modelos de iluminação: difusa (Lambert) e Blinn-Phong
 - [ ] No mínimo um objeto com modelo de Gouraud
 - [ ] No mínimo um objeto com modelo de Phong

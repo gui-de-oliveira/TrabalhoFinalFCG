@@ -50,6 +50,7 @@ ModelType createBlockModelType(
 
 ModelType Block_ZminusOpen = createBlockModelType(true, true, true, false);
 ModelType Block_ZplusOpen = createBlockModelType(true, true, false, true);
+ModelType Block_ZOpen = createBlockModelType(true, true, false, false);
 ModelType Block_XminusOpen = createBlockModelType(true, false, true, true);
 ModelType Block_XbothOpen = createBlockModelType(false, false, true, true);
 ModelType Block_XplusAndZOpen = createBlockModelType(false, true, false, false);

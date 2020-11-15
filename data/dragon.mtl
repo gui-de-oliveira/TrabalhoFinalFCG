@@ -1,0 +1,112 @@
+# Blender MTL File: 'None'
+# Material Count: 10
+
+newmtl ArmMT
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Super Mario Odyssey - Ruined Dragon\\Lord of Lightning\\Textures\\BossRaidArm_alb.png
+
+newmtl BodyMT
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Super Mario Odyssey - Ruined Dragon\\Lord of Lightning\\Textures\\BossRaidBody_alb.png
+
+newmtl BodyMT.001
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Super Mario Odyssey - Ruined Dragon\\Lord of Lightning\\Textures\\BossRaidBody_alb.png
+
+newmtl EyeMT
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Super Mario Odyssey - Ruined Dragon\\Lord of Lightning\\Textures\\BossRaidEye_alb.png
+
+newmtl HeadMT
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Super Mario Odyssey - Ruined Dragon\\Lord of Lightning\\Textures\\BossRaidHead_alb.png
+
+newmtl HeadMT.001
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Super Mario Odyssey - Ruined Dragon\\Lord of Lightning\\Textures\\BossRaidHead_alb.png
+
+newmtl HeadMT.002
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Super Mario Odyssey - Ruined Dragon\\Lord of Lightning\\Textures\\BossRaidHead_alb.png
+
+newmtl HeadMT.003
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Super Mario Odyssey - Ruined Dragon\\Lord of Lightning\\Textures\\BossRaidHead_alb.png
+
+newmtl WingMT
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Super Mario Odyssey - Ruined Dragon\\Lord of Lightning\\Textures\\BossRaidWing_alb.png
+
+newmtl WingMT.001
+Ns 225.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd C:\\Users\\Guilherme Oliveira\\Downloads\\Nintendo Switch - Super Mario Odyssey - Ruined Dragon\\Lord of Lightning\\Textures\\BossRaidWing_alb.png

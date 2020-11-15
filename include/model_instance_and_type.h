@@ -69,18 +69,20 @@ class ModelInstance
 {
     public:
     glm::vec4 position;
-    glm::vec3 rotation;
+    glm::vec3 rotation = glm::vec3(0.0, 0.0, 0.0);
     glm::vec3 scale = glm::vec3(1.0, 1.0, 1.0);
     ModelType* object;
 
-    ModelInstance(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation, glm::vec3 _scale) {
-        scale = _scale;
-        ModelInstance(_object, _position, _rotation);
-    }
+    ModelInstance(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation, float _scale) { _setup(_object, _position, _rotation, scale * _scale); }
+    ModelInstance(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation) { _setup(_object, _position, _rotation, scale); }
+    ModelInstance(ModelType* _object, glm::vec4 _position, float _scale) { _setup(_object, _position, rotation, scale * _scale); }
+    ModelInstance(ModelType* _object, glm::vec4 _position) { _setup(_object, _position, rotation, scale); }
 
-    ModelInstance(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation) {
+    private:
+    void _setup(ModelType* _object, glm::vec4 _position, glm::vec3 _rotation, glm::vec3 _scale){
         position = _position;
         rotation = _rotation;
+        scale = _scale;
         object = _object;
     }
 };
@@ -117,8 +119,8 @@ bool doObjectCollidesWithInstance(BoundingBox* obj, ModelInstance* instance) {
     return false;
 }
 
-bool doObjectCollidesWithInstancesArray(BoundingBox* obj, ModelInstance instances[], int arraySize) {
-    for(int i = 0; i < arraySize; i++){
+bool doObjectCollidesWithInstancesArray(BoundingBox* obj, std::vector<ModelInstance> instances) {
+    for(int i = 0; i < instances.size(); i++){
         if(doObjectCollidesWithInstance(obj, &instances[i])){
             return true;
         }
