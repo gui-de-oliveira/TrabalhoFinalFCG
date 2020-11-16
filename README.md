@@ -16,7 +16,7 @@
 - [x] Tipo de intersecção I - Intersecção entre cubos (AABB)
 - [x] Tipo de intersecção II - Intersecção entre esfera-ponto
 - [x] Tipo de intersecção III - Interseccção entre vetor e segmento de reta
-- [ ] No mínimo sua aplicação deve incluir objetos com os seguintes modelos de iluminação: difusa (Lambert) e Blinn-Phong
+- [x] No mínimo sua aplicação deve incluir objetos com os seguintes modelos de iluminação: difusa (Lambert) e Blinn-Phong
 - [ ] No mínimo um objeto com modelo de Gouraud
 - [ ] No mínimo um objeto com modelo de Phong
 - [x] No mínimo dois objetos devem ter suas cores definidas através de texturas definidas por imagens (no mínimo duas imagens distintas).
