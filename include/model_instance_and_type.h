@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <algorithm>
 
 // Headers das bibliotecas OpenGL
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
@@ -19,14 +20,14 @@ class BoundingBox {
         max = glm::vec4(center.x + size, center.y + size, center.z + size, 1.0);
     }
 
-    BoundingBox(glm::vec4 _min, glm::vec4 _max) {
-        min = _min;
-        max = _max;
+    BoundingBox(glm::vec4 v1, glm::vec4 v2) {
+        min = glm::vec4(std::min(v1.x, v2.x), std::min(v1.y, v2.y), std::min(v1.z, v2.z), 1.0);
+        max = glm::vec4(std::max(v1.x, v2.x), std::max(v1.y, v2.y), std::max(v1.z, v2.z), 1.0);
     }
 
-    BoundingBox(glm::vec3 _min, glm::vec3 _max) {
-        min = glm::vec4(_min.x, _min.y, _min.z, 1.0);
-        max = glm::vec4(_max.x, _max.y, _max.z, 1.0);
+    BoundingBox(glm::vec3 v1, glm::vec3 v2) {
+        min = glm::vec4(std::min(v1.x, v2.x), std::min(v1.y, v2.y), std::min(v1.z, v2.z), 1.0);
+        max = glm::vec4(std::max(v1.x, v2.x), std::max(v1.y, v2.y), std::max(v1.z, v2.z), 1.0);
     }
 
     BoundingBox(BoundingBox bounding, glm::vec4 _position){

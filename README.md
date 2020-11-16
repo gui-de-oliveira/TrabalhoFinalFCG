@@ -12,10 +12,10 @@
 - [ ] Controle de câmeras virtuais look-at
 - [x] Controle de câmeras virtuais câmera livre
 - [x] No mínimo um objeto virtual deve ser copiado com duas ou mais instâncias, isto é, utilizando duas ou mais Model matrix aplicadas ao mesmo conjunto de vértices.
-- [ ] No mínimo três tipos de teste de intersecção (exemplo, um cubo-cubo, um cubo-plano, e um ponto-esfera). (2/3)...
+- [x] No mínimo três tipos de teste de intersecção (exemplo, um cubo-cubo, um cubo-plano, e um ponto-esfera). (2/3)...
 - [x] Tipo de intersecção I - Intersecção entre cubos (AABB)
 - [x] Tipo de intersecção II - Intersecção entre esfera-ponto
-- [ ] Tipo de intersecção III - ?
+- [x] Tipo de intersecção III - Interseccção entre vetor e segmento de reta
 - [ ] No mínimo sua aplicação deve incluir objetos com os seguintes modelos de iluminação: difusa (Lambert) e Blinn-Phong
 - [ ] No mínimo um objeto com modelo de Gouraud
 - [ ] No mínimo um objeto com modelo de Phong

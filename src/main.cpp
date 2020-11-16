@@ -196,6 +196,10 @@ float positionXByTime(float time){
     return sin(time);
 }
 
+float vectorLength(glm::vec4 v){
+    return sqrt(pow(v.x, 2) * pow(v.y, 2) * pow(v.z, 2));
+}
+
 // Checa se é possível mover o personagem na direção mostrada e o move
 void tryToMove(glm::vec4 direction);
 
@@ -269,6 +273,72 @@ glm::vec4 getEnemyPosition(float delta) {
 
     glm::vec4 diffor = currentPos - initialPos;
     return diffor;
+};
+
+float calculateAngle(glm::vec2 v1, glm::vec2 v2){
+    float dot = v1.x * v2.x + v1.y * v2.y;
+    float det = v1.x * v2.y - v1.y * v2.x;
+
+    return atan2(det, dot);
+}
+
+bool doesRayCollidesWithAnyWall(std::vector<ModelInstance> allInstances, glm::vec4 start, glm::vec4 end)
+{
+    glm::vec4 rayDirection  = end - start;
+    BoundingBox rayBoundingBox = BoundingBox(end, start);
+
+    //Get all instances colliding with the bounding box
+    std::vector<ModelInstance> collidingInstances = {};
+    while(allInstances.size() > 0)
+    {
+        ModelInstance instance = allInstances[allInstances.size() - 1];
+
+        if (doObjectCollidesWithInstance(&rayBoundingBox, &instance)) {
+            collidingInstances.push_back(instance);
+        }
+
+        allInstances.pop_back();
+    }
+    
+    //Search for wall colliding with ray
+    while(collidingInstances.size() > 0)
+    {
+        ModelInstance wall = collidingInstances[collidingInstances.size() - 1];
+        collidingInstances.pop_back();
+
+        std::vector<BoundingBox> boundings = wall.object->boundings;
+        for(int i = 0; i < boundings.size(); i++) {
+            BoundingBox relativeBounding = BoundingBox(boundings[i], wall.position - start);
+
+            //Horizontal line
+            if(relativeBounding.min.z == relativeBounding.max.z) 
+            {
+                float t = relativeBounding.max.z / rayDirection.z;
+                float x = rayDirection.x * t;
+
+                //Intersects with the line segment
+                if (t >= 0 && relativeBounding.min.x <= x && x <= relativeBounding.max.x) 
+                {
+                    return true;
+                }
+            } 
+
+            //Vertical line
+            else 
+            {
+                float t = relativeBounding.max.x / rayDirection.x;
+                float z = rayDirection.z * t;
+
+                //Intersects with the line segment
+                if (t >= 0 && relativeBounding.min.z <= z && z <= relativeBounding.max.z) 
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
 };
 
 int main(int argc, char* argv[])
@@ -375,6 +445,7 @@ int main(int argc, char* argv[])
     // glFrontFace(GL_CCW);
 
     bool isGameWon = false;
+    bool isGameLost = false;
 
     glm::vec4 offset;
     float currentTime = glfwGetTime();
@@ -408,16 +479,11 @@ int main(int argc, char* argv[])
         float distance = sqrt(d.x * d.x + d.y * d.y + d.z * d.z);
 
         if(!g_EscapePressed){
-
             glm::vec4 direction = getEnemyPosition(delta);
             enemyInstance->position += direction;
+            glm::vec2 enemyDirectionTopDown = glm::vec2(direction.x, direction.z);
 
-            glm::vec2 direction2d = glm::vec2(direction.x, direction.z);
-            glm::vec2 left = glm::vec2(1.0, 0.0);
-
-            float dot = direction2d.x * left.x + direction2d.y * left.y;
-            float det = direction2d.x * left.y - direction2d.y * left.x;
-            float angle = atan2(det, dot);
+            float angle = calculateAngle(enemyDirectionTopDown, glm::vec2(1.0, 0.0));
 
             enemyInstance->rotation.y = angle + HALF_PI;
 
@@ -437,8 +503,19 @@ int main(int argc, char* argv[])
 
             //Scan for player
 
+            glm::vec4 relativeEnemyPosition = enemyInstance->position - g_PlayerCamera.position;
+           
+            if(vectorLength(relativeEnemyPosition) < 50.0) {
 
-            //Stop if finds him [game over]
+                glm::vec2 relEnemyPositionTopDown = glm::vec2(relativeEnemyPosition.x, relativeEnemyPosition.z);
+                glm::vec2 dirction = glm::vec2(g_PlayerCamera.getDirection().x, g_PlayerCamera.getDirection().z);
+                float playerAngle = fabs(calculateAngle(dirction, relEnemyPositionTopDown)) * (180.0/PI);
+
+                if(playerAngle < 90.0){
+                    //check for walls on the way
+                    isGameLost = doesRayCollidesWithAnyWall(instances, g_PlayerCamera.position, enemyInstance->position);
+                }
+            }
 
             // Movimentamos o personagem se alguma tecla estiver pressionada
             float speed = 2.0f * (g_ModShift ? 10.0 : 1.0) * (g_ModCtrl ? 0.1 : 1.0);
