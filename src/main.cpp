@@ -76,6 +76,21 @@ int main(int argc, char* argv[])
     LoadShadersFromFiles();
     LoadTextureImage("../../data/cameratitlemenu_alb.png");
 
+    string texturesPath = "../../data/textures/";
+    std::vector<string> texturesList = {
+    //Dragon textures
+    "bossraidarm_alb.png",
+    "bossraidbody_alb.png",
+    "bossraideye_alb.png",
+    "bossraidhead_alb.png",
+    "bossraidwing_alb.png",
+    };
+
+    for(int i = 0; i < texturesList.size(); i++)
+    {
+        LoadTextureImage((texturesPath + texturesList[i]).c_str());
+    }
+
     string path = "../../data/";
     std::vector<string> modelsList = {
     "Link0.obj",

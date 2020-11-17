@@ -368,6 +368,14 @@ void LoadShadersFromFiles()
     // Variáveis em "shader_fragment.glsl" para acesso das imagens de textura
     glUseProgram(program_id);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage_Link"), 0);
+
+    //Dragon textures
+    glUniform1i(glGetUniformLocation(program_id, "DragonTexture_0"), 1);
+    glUniform1i(glGetUniformLocation(program_id, "DragonTexture_1"), 2);
+    glUniform1i(glGetUniformLocation(program_id, "DragonTexture_2"), 3);
+    glUniform1i(glGetUniformLocation(program_id, "DragonTexture_3"), 4);
+    glUniform1i(glGetUniformLocation(program_id, "DragonTexture_4"), 5);
+    
     glUseProgram(0);
 }
 
@@ -496,8 +504,8 @@ void LoadTextureImage(const char* filename)
     glGenSamplers(1, &sampler_id);
 
     // Veja slides 95-96 do documento Aula_20_Mapeamento_de_Texturas.pdf
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glSamplerParameteri(sampler_id, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
     // Parâmetros de amostragem da textura.
     glSamplerParameteri(sampler_id, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);

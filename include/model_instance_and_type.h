@@ -134,6 +134,7 @@ bool doObjectCollidesWithInstancesArray(BoundingBox* obj, std::vector<ModelInsta
 #define PLANE  2
 #define LINK  3
 #define CORRIDOR 4
+#define DRAGON 4
 
 void drawEnemy(){
     glUniform1i(object_id_uniform, LINK);
@@ -147,17 +148,18 @@ void drawSphere(){
 }
 
 void drawDragon(){
-    glUniform1i(object_id_uniform, LINK);
-    DrawVirtualObject("Body__ArmMT_Body__ArmMT_ArmMT");
-    DrawVirtualObject("Body__BodyMT_Body__BodyMT_BodyMT");
-    DrawVirtualObject("HeadUpper__HeadMT_HeadUpper__HeadMT_HeadMT");
-    DrawVirtualObject("EyeBall__EyeMT_EyeBall__EyeMT_EyeMT");
-    DrawVirtualObject("Jaw__HeadMT_Jaw__HeadMT_HeadMT.001");
-    DrawVirtualObject("Toungue__HeadMT_Toungue__HeadMT_HeadMT.002");
-    DrawVirtualObject("LowerBody__BodyMT_LowerBody__BodyMT_BodyMT.001");
-    DrawVirtualObject("Maku__HeadMT_Maku__HeadMT_HeadMT.003");
-    DrawVirtualObject("Wing__WingMT_Wing__WingMT_WingMT");
-    DrawVirtualObject("WingFrame__WingMT_WingFrame__WingMT_WingMT.001");
+    glUniform1i(object_id_uniform, DRAGON);
+
+    DrawVirtualObject("Body__ArmMT");
+    DrawVirtualObject("Body__BodyMT");
+    DrawVirtualObject("HeadUpper__HeadMT");
+    DrawVirtualObject("EyeBall__EyeMT");
+    DrawVirtualObject("Jaw__HeadMT");
+    DrawVirtualObject("Toungue__HeadMT");
+    DrawVirtualObject("LowerBody__BodyMT");
+    DrawVirtualObject("Maku__HeadMT");
+    DrawVirtualObject("Wing__WingMT");
+    DrawVirtualObject("WingFrame__WingMT");
 }
 
 ModelType Enemy = ModelType(glm::vec3(1.0, 1.0, 1.0), drawEnemy);
