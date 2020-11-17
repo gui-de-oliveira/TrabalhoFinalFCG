@@ -62,6 +62,7 @@ void ErrorCallback(int error, const char* description);
 void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos);
+void cursorPosCallbackOnGameLost(GLFWwindow* window, double xpos, double ypos);
 
 void DrawWorld(bool drawPlayer, bool drawCamera);
 bool collisionDetect (Camera g_PlayerCamera);
@@ -152,7 +153,7 @@ ModelInstance* endGame = &instances[2];
 glm::vec4 UP_VECTOR = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
 Camera g_FixedCamera(-1.052, 1.917, 2.0, -0.28, 20.39);
-Camera g_PlayerCamera(0.0, 0.55, 0.0, -0.24, 18.85);
+Camera g_PlayerCamera(0.0, 0.55, -2.0, -0.24, 18.85);
 
 glm::vec4 g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
 glm::vec4 g_CameraRelativeForward =  crossproduct(g_CameraRelativeLeft, UP_VECTOR);
@@ -343,6 +344,8 @@ bool doesRayCollidesWithAnyWall(std::vector<ModelInstance> allInstances, glm::ve
     return false;
 };
 
+bool shouldRotate = true;
+
 int main(int argc, char* argv[])
 {
     // Inicializamos a biblioteca GLFW, utilizada para criar uma janela do
@@ -441,10 +444,10 @@ int main(int argc, char* argv[])
     glEnable(GL_DEPTH_TEST);
 
     // Habilitamos o Backface Culling. Veja slides 23-34 do documento Aula_13_Clipping_and_Culling.pdf.
-    // glEnable(GL_CULL_FACE);
-    glDisable(GL_CULL_FACE);
-    // glCullFace(GL_BACK);
-    // glFrontFace(GL_CCW);
+    glEnable(GL_CULL_FACE);
+    // glDisable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
 
     bool isGameWon = false;
     bool isGameLost = false;
@@ -453,7 +456,7 @@ int main(int argc, char* argv[])
     float currentTime = glfwGetTime();
     float lastTime = currentTime;
     // Ficamos em loop, renderizando, até que o usuário feche a janela
-    while (!glfwWindowShouldClose(window) && !isGameWon)
+    while (!glfwWindowShouldClose(window) && !isGameWon && !isGameLost)
     {
         float delta = glfwGetTime() - currentTime;
         lastTime = currentTime;
@@ -515,7 +518,8 @@ int main(int argc, char* argv[])
 
                 if(playerAngle < 90.0){
                     //check for walls on the way
-                    isGameLost = doesRayCollidesWithAnyWall(instances, g_PlayerCamera.position, enemyInstance->position);
+                    bool doesRayCollide = doesRayCollidesWithAnyWall(instances, enemyInstance->position, g_PlayerCamera.position);
+                    isGameLost = !doesRayCollide;
                 }
             }
 
@@ -622,9 +626,54 @@ int main(int argc, char* argv[])
     }
 
     glViewport(0, 0, g_Width, g_Height);
-    if(isGameWon) {
-    
 
+    if(isGameLost) {
+    shouldRotate = false;
+    glfwSetCursorPosCallback(window, cursorPosCallbackOnGameLost);
+
+    while(!glfwWindowShouldClose(window))
+    {
+        lastTime = currentTime;
+        currentTime = glfwGetTime();
+        float delta = currentTime - lastTime;
+
+        //Pintamos tudo de branco e reiniciamos o Z-BUFFER
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glUseProgram(program_id);
+
+        float r = 2.0;
+        float y = g_PlayerCamera.position.y + r * sin(g_PlayerCamera.phi); 
+        float z = g_PlayerCamera.position.z + r * cos(g_PlayerCamera.phi) * cos(g_PlayerCamera.theta);
+        float x = g_PlayerCamera.position.x + r * cos(g_PlayerCamera.phi) * sin(g_PlayerCamera.theta);
+
+        glm::vec4 camera_position_c  = glm::vec4(x,y,z,1.0f); // Ponto "c", centro da câmera
+        glm::vec4 camera_lookat_l    = glm::vec4(g_PlayerCamera.position.x, g_PlayerCamera.position.y, g_PlayerCamera.position.z, 1.0f);
+        glm::vec4 camera_view_vector = camera_lookat_l - camera_position_c; // Vetor "view", sentido para onde a câmera está virada
+
+        // Computamos a matriz "View" utilizando os parâmetros da câmera para
+        // definir o sistema de coordenadas da câmera.  Veja slides 2-14, 184-190 e 236-242 do documento Aula_08_Sistemas_de_Coordenadas.pdf.
+        glm::mat4 view = Matrix_Camera_View(camera_position_c, camera_view_vector, UP_VECTOR);
+
+        float nearPlane = -0.1f;  // Posição do "near plane"
+        float farPlane  = -500.0f; // Posição do "far plane"
+        float fieldOfView = 3.141592 / 3.0f;
+
+        glm::mat4 projection = Matrix_Perspective(fieldOfView, g_ScreenRatio, nearPlane, farPlane);
+
+        glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
+        glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
+
+        DrawWorld(true, true);
+
+        PrintStringCenter(window, "YOU LOST!\n Press R to play again", 2.0f);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+        }
+    }
+
+    if(isGameWon) {
     while(!glfwWindowShouldClose(window))
     {
         lastTime = currentTime;
@@ -646,7 +695,6 @@ int main(int argc, char* argv[])
 
         glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
-
         PrintStringCenter(window, "YOU WON THE GAME!\n Press R to play again", 2.0f);
 
         glfwSwapBuffers(window);
@@ -669,9 +717,13 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
         // Desenhamos o player
         model = Matrix_Translate(g_PlayerCamera.position.x, g_PlayerCamera.position.y, g_PlayerCamera.position.z)
             * Matrix_Translate(0.0, -0.5, 0.0)
-            * Matrix_Scale(0.5f, 0.5f, 0.5f)
-            * Matrix_Rotate_Y(g_PlayerCamera.theta)
-            * Matrix_Rotate_X(-g_PlayerCamera.phi * 0.5);
+            * Matrix_Scale(0.5f, 0.5f, 0.5f);
+            
+        if (shouldRotate) {
+            model *= Matrix_Rotate_Y(g_PlayerCamera.theta)
+                 * Matrix_Rotate_X(-g_PlayerCamera.phi * 0.5);
+        }
+
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, LINK);
 
@@ -765,6 +817,29 @@ void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
         g_MiddleMouseButtonPressed = false;
     }
 }
+
+void cursorPosCallbackOnGameLost(GLFWwindow* window, double xpos, double ypos)
+{
+    float dx = xpos - g_LastCursorPosX;
+    float dy = ypos - g_LastCursorPosY;
+
+    // Atualizamos parâmetros da câmera com os deslocamentos
+    g_PlayerCamera.theta -= 0.01f*dx;
+    g_PlayerCamera.phi   -= 0.01f*dy;
+
+    // Em coordenadas esféricas, o ângulo phi deve ficar entre -pi/2 e +pi/2.
+    float phimax = 3.141592f/2;
+    float phimin = 0.1;
+
+    if (g_PlayerCamera.phi > phimax)
+        g_PlayerCamera.phi = phimax;
+
+    if (g_PlayerCamera.phi < phimin)
+        g_PlayerCamera.phi = phimin;
+
+    g_LastCursorPosX = xpos;
+    g_LastCursorPosY = ypos;
+};
 
 // Função callback chamada sempre que o usuário movimentar o cursor do mouse em
 // cima da janela OpenGL.

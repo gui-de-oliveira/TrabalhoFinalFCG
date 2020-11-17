@@ -9,7 +9,7 @@
 - [x] possibilitar interação com o usuário através do mouse e do teclado.
 - [x] Objetos virtuais representados através de malhas poligonais complexas (malhas de triângulos). (complexidade igual ou maior que o modelo "cow.obj")
 - [x] Transformações geométricas de objetos virtuais através da interação com o teclado e/ou mouse
-- [ ] Controle de câmeras virtuais look-at
+- [x] Controle de câmeras virtuais look-at
 - [x] Controle de câmeras virtuais câmera livre
 - [x] No mínimo um objeto virtual deve ser copiado com duas ou mais instâncias, isto é, utilizando duas ou mais Model matrix aplicadas ao mesmo conjunto de vértices.
 - [x] No mínimo três tipos de teste de intersecção (exemplo, um cubo-cubo, um cubo-plano, e um ponto-esfera). (2/3)...
