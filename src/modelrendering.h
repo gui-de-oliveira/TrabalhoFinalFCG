@@ -375,6 +375,10 @@ void LoadShadersFromFiles()
     glUniform1i(glGetUniformLocation(program_id, "DragonTexture_2"), 3);
     glUniform1i(glGetUniformLocation(program_id, "DragonTexture_3"), 4);
     glUniform1i(glGetUniformLocation(program_id, "DragonTexture_4"), 5);
+
+    //Reaper textures
+    glUniform1i(glGetUniformLocation(program_id, "ReaperTexture_0"), 6);
+    glUniform1i(glGetUniformLocation(program_id, "ReaperTexture_1"), 7);
     
     glUseProgram(0);
 }

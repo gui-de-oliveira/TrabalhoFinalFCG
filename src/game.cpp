@@ -40,8 +40,6 @@ void PrintStringCenter(GLFWwindow* window, string text, float scale);
 void DrawWorld(bool drawPlayer, bool drawCamera);
 bool collisionDetect (Camera g_PlayerCamera);
 
-#define PI 3.1415
-#define HALF_PI PI / 2.0
 #define BLOCK_SIZE 2
 
 #define SPHERE 0
@@ -465,7 +463,7 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
 
             float angle = calculateAngle(enemyDirectionTopDown, glm::vec2(1.0, 0.0));
 
-            enemyInstance->rotation.y = angle + HALF_PI;
+            enemyInstance->rotation.z = -angle;
 
             auto offset = [=](float speed, float amp){ return (sin(currentTime * speed) - sin(lastTime * speed)) * amp; };
 
@@ -677,6 +675,9 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
         ModelInstance instance =  instances[i];
 
         model = Matrix_Translate(instance.position.x, instance.position.y, instance.position.z)
+            * Matrix_Rotate_X(instance.object->rotation.x)
+            * Matrix_Rotate_Y(instance.object->rotation.y)
+            * Matrix_Rotate_Z(instance.object->rotation.z)
             * Matrix_Rotate_X(instance.rotation.x)
             * Matrix_Rotate_Y(instance.rotation.y)
             * Matrix_Rotate_Z(instance.rotation.z)

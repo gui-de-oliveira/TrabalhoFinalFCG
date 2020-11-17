@@ -26,7 +26,8 @@ uniform mat4 projection;
 #define PLANE  2
 #define LINK  3
 #define CORRIDOR 4
-#define DRAGON 4
+#define DRAGON 5
+#define REAPER 6
 
 uniform int object_id;
 
@@ -59,6 +60,19 @@ sampler2D selectDragonTexture() {
         case 7: return DragonTexture_3; //Head
         case 8:
         case 9: return DragonTexture_4; //Wings 
+    }
+}
+
+uniform sampler2D ReaperTexture_0;
+uniform sampler2D ReaperTexture_1;
+
+sampler2D selectReaperTexture() {
+    switch(int(material_id.x))
+    {
+        case -1: return DragonTexture_2;
+        case 0: return ReaperTexture_0;
+        case 1: return ReaperTexture_1;
+        default: return ReaperTexture_0;
     }
 }
 
@@ -107,6 +121,13 @@ void main()
         V = texcoords.y;
      
         TextureColor = texture(selectDragonTexture(), vec2(U,V)).rgb;
+    }
+
+    else if (object_id == REAPER){
+        U = texcoords.x;
+        V = texcoords.y;
+     
+        TextureColor = texture(selectReaperTexture(), vec2(U,V)).rgb;
     }
 
     // if(object_id == LINK){

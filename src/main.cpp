@@ -84,6 +84,10 @@ int main(int argc, char* argv[])
     "bossraideye_alb.png",
     "bossraidhead_alb.png",
     "bossraidwing_alb.png",
+
+    //Reaper textures
+    "reaper_01.png",
+    "reaper_02.png",
     };
 
     for(int i = 0; i < texturesList.size(); i++)

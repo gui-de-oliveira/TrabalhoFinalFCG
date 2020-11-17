@@ -10,6 +10,9 @@
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
 #include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
 
+#define PI 3.1415
+#define HALF_PI PI / 2.0
+
 class BoundingBox {
     public:
     glm::vec4 min;
@@ -46,12 +49,20 @@ class ModelType
     public:
     std::function<void()> drawObject;
     glm::vec3 scale = glm::vec3(1.0, 1.0, 1.0);
+    glm::vec3 rotation = glm::vec3(0.0, 0.0, 0.0);
     std::vector<BoundingBox> boundings = {};
 
     ModelType(glm::vec3 _scale, void (*_drawObject)()) {
         scale = _scale;
         drawObject = _drawObject;
     }
+
+    ModelType(glm::vec3 _scale, glm::vec3 _rotation, void (*_drawObject)()) {
+        scale = _scale;
+        rotation = _rotation;
+        drawObject = _drawObject;
+    }
+
 
     ModelType(glm::vec3 _scale, void (*_drawObject)(), std::vector<BoundingBox> _boundings) {
         scale = _scale;
@@ -134,12 +145,12 @@ bool doObjectCollidesWithInstancesArray(BoundingBox* obj, std::vector<ModelInsta
 #define PLANE  2
 #define LINK  3
 #define CORRIDOR 4
-#define DRAGON 4
+#define DRAGON 5
+#define REAPER 6
 
 void drawEnemy(){
-    glUniform1i(object_id_uniform, LINK);
-    DrawVirtualObject("foe120_model_foe120_model.001_assets_textures_em0C1_t02");
-    DrawVirtualObject("foe120_model_foe120_model.001_assets_textures_em0C1_t01");
+    glUniform1i(object_id_uniform, REAPER);
+    DrawVirtualObject("foe120_model");
 }
 
 void drawSphere(){
@@ -162,7 +173,7 @@ void drawDragon(){
     DrawVirtualObject("WingFrame__WingMT");
 }
 
-ModelType Enemy = ModelType(glm::vec3(1.0, 1.0, 1.0), drawEnemy);
+ModelType Enemy = ModelType(glm::vec3(1.0, 1.0, 1.0), glm::vec3(HALF_PI, 0.0, HALF_PI + PI), drawEnemy);
 ModelType Sphere = ModelType(glm::vec3(1.0, 1.0, 1.0), drawSphere);
 ModelType Dragon = ModelType(glm::vec3(0.01, 0.01, 0.01), drawDragon);
 
