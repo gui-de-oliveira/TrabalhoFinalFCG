@@ -52,6 +52,8 @@
 // outras informações do programa. Definidas após main().
 void TextRendering_ShowFramesPerSecond(GLFWwindow* window);
 void PrintStringTopLeft(GLFWwindow* window, string text);
+void PrintStringCenter(GLFWwindow* window, string text);
+void PrintStringCenter(GLFWwindow* window, string text, float scale);
 
 // Funções callback para comunicação com o sistema operacional e interação do
 // usuário. Veja mais comentários nas definições das mesmas, abaixo.
@@ -451,7 +453,7 @@ int main(int argc, char* argv[])
     float currentTime = glfwGetTime();
     float lastTime = currentTime;
     // Ficamos em loop, renderizando, até que o usuário feche a janela
-    while (!glfwWindowShouldClose(window))
+    while (!glfwWindowShouldClose(window) && !isGameWon)
     {
         float delta = glfwGetTime() - currentTime;
         lastTime = currentTime;
@@ -612,6 +614,44 @@ int main(int argc, char* argv[])
         // definidas anteriormente usando glfwSet*Callback() serão chamadas
         // pela biblioteca GLFW.
         glfwPollEvents();
+    }
+
+    if(glfwWindowShouldClose(window)) {
+        glfwTerminate();
+        return 0;
+    }
+
+    glViewport(0, 0, g_Width, g_Height);
+    if(isGameWon) {
+    
+
+    while(!glfwWindowShouldClose(window))
+    {
+        lastTime = currentTime;
+        currentTime = glfwGetTime();
+        float delta = currentTime - lastTime;
+
+        //Pintamos tudo de branco e reiniciamos o Z-BUFFER
+        glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glUseProgram(program_id);
+
+        glm::mat4 view = Matrix_Camera_View(g_PlayerCamera.position, g_PlayerCamera.getDirection(), UP_VECTOR);
+
+        float nearPlane = -0.1f;  // Posição do "near plane"
+        float farPlane  = -500.0f; // Posição do "far plane"
+        float fieldOfView = 3.141592 / 3.0f;
+
+        glm::mat4 projection = Matrix_Perspective(fieldOfView, g_ScreenRatio, nearPlane, farPlane);
+
+        glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
+        glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
+
+        PrintStringCenter(window, "YOU WON THE GAME!\n Press R to play again", 2.0f);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+        }
     }
 
     // Finalizamos o uso dos recursos do sistema operacional
@@ -932,6 +972,43 @@ void PrintStringTopLeft(GLFWwindow* window, string text)
         TextRendering_PrintString(window, buffer, -1.0f+pad/10, 1.0 - lineCount * pad, 1.0f);
     }
 }
+
+void PrintStringCenter(GLFWwindow* window, string text, float scale)
+{
+    float pad = TextRendering_LineHeight(window) * scale;
+    float charWidth = TextRendering_CharWidth(window) * scale;
+
+    char buffer[200];
+    int lineCount = 0;
+    std::string::size_type lastTokenPos = 0;
+    std::string::size_type nextTokenPos = 0;
+    std::vector<std::string> lines = {};
+    while(nextTokenPos != std::string::npos)
+    {
+        lineCount += 1;
+        lastTokenPos = nextTokenPos;
+        nextTokenPos = text.find_first_of("\n", lastTokenPos + 1);
+
+        lines.push_back(text.substr(lastTokenPos, nextTokenPos - lastTokenPos));
+    }
+
+    int totalLines = lines.size();
+    int currLine = 0;
+    while(lines.size() > 0)
+    {
+        std::string text = lines[lines.size() - 1];
+        snprintf(buffer, 200, text.c_str());
+        TextRendering_PrintString(window, buffer, text.size() * 0.5 * charWidth * -1, currLine * pad - totalLines * 0.5 * pad , scale);
+
+        currLine += 1;
+        lines.pop_back();
+    }
+}
+
+void PrintStringCenter(GLFWwindow* window, string text) {
+    PrintStringCenter(window, text, 1.0f);
+}
+
 
 // Escrevemos na tela o número de quadros renderizados por segundo (frames per
 // second).
