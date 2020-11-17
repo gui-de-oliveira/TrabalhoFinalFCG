@@ -6,6 +6,7 @@
 #include <glad/glad.h>   // Criação de contexto OpenGL 3.3
 #include <GLFW/glfw3.h>  // Criação de janelas do sistema operacional
 
+glm::vec4 UP_VECTOR = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 class Camera
 {
     public:
@@ -22,6 +23,18 @@ class Camera
             cos(phi) * cos(theta),
             0.0f);
     };
+
+    glm::vec4 getRelativeLeft() {
+        glm::vec4 relativeLeft = crossproduct(UP_VECTOR, getDirection());
+        relativeLeft /= norm(relativeLeft);
+        return relativeLeft;
+    }
+
+    glm::vec4 getRelativeForward() {
+        glm::vec4 relativeForward = crossproduct(getRelativeLeft(), UP_VECTOR);
+        relativeForward /= norm(relativeForward);
+        return relativeForward;
+    }   
 };
 
 Camera::Camera (float _x, float _y, float _z, float _phi, float _theta) {

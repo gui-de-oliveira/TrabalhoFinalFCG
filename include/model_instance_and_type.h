@@ -129,5 +129,40 @@ bool doObjectCollidesWithInstancesArray(BoundingBox* obj, std::vector<ModelInsta
     return false;
 }
 
+#define SPHERE 0
+#define BUNNY  1
+#define PLANE  2
+#define LINK  3
+#define CORRIDOR 4
+
+void drawEnemy(){
+    glUniform1i(object_id_uniform, LINK);
+    DrawVirtualObject("foe120_model_foe120_model.001_assets_textures_em0C1_t02");
+    DrawVirtualObject("foe120_model_foe120_model.001_assets_textures_em0C1_t01");
+}
+
+void drawSphere(){
+    glUniform1i(object_id_uniform, LINK);
+    DrawVirtualObject("Sphere");
+}
+
+void drawDragon(){
+    glUniform1i(object_id_uniform, LINK);
+    DrawVirtualObject("Body__ArmMT_Body__ArmMT_ArmMT");
+    DrawVirtualObject("Body__BodyMT_Body__BodyMT_BodyMT");
+    DrawVirtualObject("HeadUpper__HeadMT_HeadUpper__HeadMT_HeadMT");
+    DrawVirtualObject("EyeBall__EyeMT_EyeBall__EyeMT_EyeMT");
+    DrawVirtualObject("Jaw__HeadMT_Jaw__HeadMT_HeadMT.001");
+    DrawVirtualObject("Toungue__HeadMT_Toungue__HeadMT_HeadMT.002");
+    DrawVirtualObject("LowerBody__BodyMT_LowerBody__BodyMT_BodyMT.001");
+    DrawVirtualObject("Maku__HeadMT_Maku__HeadMT_HeadMT.003");
+    DrawVirtualObject("Wing__WingMT_Wing__WingMT_WingMT");
+    DrawVirtualObject("WingFrame__WingMT_WingFrame__WingMT_WingMT.001");
+}
+
+ModelType Enemy = ModelType(glm::vec3(1.0, 1.0, 1.0), drawEnemy);
+ModelType Sphere = ModelType(glm::vec3(1.0, 1.0, 1.0), drawSphere);
+ModelType Dragon = ModelType(glm::vec3(0.01, 0.01, 0.01), drawDragon);
+
 #endif // _MODEL_H
 // vim: set spell spelllang=pt_br :
