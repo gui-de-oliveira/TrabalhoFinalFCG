@@ -153,7 +153,7 @@ ModelInstance* endGame = &instances[2];
 glm::vec4 UP_VECTOR = glm::vec4(0.0f, 1.0f, 0.0f, 0.0f);
 
 Camera g_FixedCamera(-1.052, 1.917, 2.0, -0.28, 20.39);
-Camera g_PlayerCamera(0.0, 0.55, -2.0, -0.24, 18.85);
+Camera g_PlayerCamera(0.0, 0.55, -2.75, -0.24, 18.85);
 
 glm::vec4 g_CameraRelativeLeft = crossproduct(UP_VECTOR, g_PlayerCamera.getDirection());
 glm::vec4 g_CameraRelativeForward =  crossproduct(g_CameraRelativeLeft, UP_VECTOR);
@@ -508,17 +508,17 @@ int main(int argc, char* argv[])
 
             //Scan for player
 
-            glm::vec4 relativeEnemyPosition = enemyInstance->position - g_PlayerCamera.position;
+            glm::vec4 relativeEnemyPosition = g_PlayerCamera.position - enemyInstance->position;
            
             if(vectorLength(relativeEnemyPosition) < 50.0) {
 
                 glm::vec2 relEnemyPositionTopDown = glm::vec2(relativeEnemyPosition.x, relativeEnemyPosition.z);
-                glm::vec2 dirction = glm::vec2(g_PlayerCamera.getDirection().x, g_PlayerCamera.getDirection().z);
+                glm::vec2 dirction = glm::vec2(direction.x, direction.z);
                 float playerAngle = fabs(calculateAngle(dirction, relEnemyPositionTopDown)) * (180.0/PI);
 
-                if(playerAngle < 90.0){
+                if(playerAngle < 45.0){
                     //check for walls on the way
-                    bool doesRayCollide = doesRayCollidesWithAnyWall(instances, enemyInstance->position, g_PlayerCamera.position);
+                    bool doesRayCollide = doesRayCollidesWithAnyWall(instances, g_PlayerCamera.position, enemyInstance->position);
                     isGameLost = !doesRayCollide;
                 }
             }
