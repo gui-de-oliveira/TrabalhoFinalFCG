@@ -118,7 +118,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_InstanceSelectedId--;
 
         if(g_InstanceSelectedId < 0){
-            g_InstanceSelectedId = 0;
+            g_InstanceSelectedId = instances.size() - 1;
         }
 
         g_InstanceSelected = &instances[g_InstanceSelectedId];
@@ -276,7 +276,7 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
     pushToInstances(&endGame, ModelInstance(&Sphere, glm::vec4(0.0, 1.0, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0));
     
     ModelInstance *enemyInstance;
-    pushToInstances(&enemyInstance, ModelInstance(&Enemy, glm::vec4(3.0, 0.0, 0.0, 1.0), 0.0056));
+    pushToInstances(&enemyInstance, ModelInstance(&Enemy, glm::vec4(-8.0, 0.0, 0.0, 1.0), 0.0056));
     Reaper enemy(enemyInstance, &instances);
 
     bool isGameWon = false;
