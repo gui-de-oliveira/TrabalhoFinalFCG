@@ -16,11 +16,43 @@ uniform mat4 projection;
 // ** Estes ser�o interpolados pelo rasterizador! ** gerando, assim, valores
 // para cada fragmento, os quais ser�o recebidos como entrada pelo Fragment
 // Shader. Veja o arquivo "shader_fragment.glsl".
+out vec3 colorGourand;
+out float lambertGourand;
+// in bool useGourand;
+
 out vec4 position_world;
 out vec4 position_model;
 out vec4 normal;
 out vec2 texcoords;
 flat out vec2 material_id;
+
+void gourandColors (){
+    vec4 origin = vec4(0.0, 0.0, 0.0, 1.0);
+    vec4 camera_position = inverse(view) * origin;
+    vec4 n = normalize(normal); //// Normal do fragmento atual
+    vec4 l = normalize(vec4(0.0,1.0,0.0,0.0) - position_world); //Sentido da fonte de luz em relação ao ponto atual.
+    vec4 v = normalize(camera_position - position_world);  //Sentido da câmera em relação ao ponto atual
+    vec4 r = -l + 2*n*dot(n,l); //Sentido da reflex�o especular ideal.
+    
+    lambertGourand = max(0, dot(n, l));
+
+    // vec3 Kd; // Refletancia difusa
+    // vec3 Ks; // Refletancia especular
+    // vec3 Ka; // Refletancia ambiente
+    // float q; // Expoente especular para o modelo de iluminacao de Phong
+    vec3 Kd = vec3(0.1686, 0.6235, 0.9255);
+    vec3 Ks = vec3(0.8,0.8,0.8);
+    vec3 Ka = Kd/2;
+    float q = 32.0;
+
+    vec3 I = vec3(1.0,1.0,1.0); // Espectro da fonte de iluminacao
+    vec3 Ia = vec3(0.2,0.2,0.2); // Espectro da luz ambiente
+    vec3 lambert_diffuse_term = Kd * I * max(0,dot(n,l));
+    vec3 ambient_term = Ka*Ia;
+    vec3 phong_specular_term  = Ks * I * pow(max(0,dot(r,v)),q);
+
+    colorGourand = lambert_diffuse_term + ambient_term + phong_specular_term;
+}
 
 void main()
 {
@@ -62,6 +94,10 @@ void main()
     // Veja slides 123-151 do documento Aula_07_Transformacoes_Geometricas_3D.pdf.
     normal = inverse(transpose(model)) * normal_coefficients;
     normal.w = 0.0;
+
+    // Calcula as cores por vertice se a flag é verdadeira (a flag é setada no "shader_fragment")
+    // if (useGourand)
+    //     gourandColors ();
 
     // Coordenadas de textura obtidas do arquivo OBJ (se existirem!)
     texcoords = texture_coefficients;
