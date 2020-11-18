@@ -387,6 +387,17 @@ bool doesRayCollidesWithAnyWall(std::vector<ModelInstance> allInstances, glm::ve
     return false;
 };
 
+enum PlayerState {
+    MOVING_FORWARD,
+    MOVING_BACKWARD,
+    MOVING_SIDEWAYS,
+    IDLE,
+    DEATH
+};
+
+PlayerState playerState = IDLE;
+float frameCounter = 0;
+std::string playerModel = "";
 
 int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
 {
@@ -423,7 +434,7 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
     ModelInstance *enemyInstance, *dragonInstance, *endGame;
     pushToInstances(&enemyInstance, ModelInstance(&Enemy, glm::vec4(3.0, 0.0, 0.0, 1.0), 0.0056));
     pushToInstances(&dragonInstance, ModelInstance(&Dragon, glm::vec4(0.0, -1.15, 15.0, 1.0), glm::vec3(0.0, PI, 0.0), 13.4));
-    pushToInstances(&endGame, ModelInstance(&Sphere, glm::vec4(0.0, 0.5, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0));
+    pushToInstances(&endGame, ModelInstance(&Sphere, glm::vec4(0.0, 1.0, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0));
 
     bool isGameWon = false;
     bool isGameLost = false;
@@ -502,6 +513,45 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
             if(g_ButtonState.MovingLeft) tryToMove(speed * delta * g_PlayerCamera.getRelativeLeft());
             if(g_ButtonState.MovingRight) tryToMove(-1.0f * speed * delta * g_PlayerCamera.getRelativeLeft());
 
+           
+
+            if(g_ButtonState.MovingForward) {
+                frameCounter += delta;    
+                if(playerState != MOVING_FORWARD && playerState != MOVING_BACKWARD) frameCounter = 0; 
+
+                int frame = (int) (frameCounter * 50.0) % FRAMES_LUCINA_WALKING;
+                playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.001_WALK_" + to_string(frame);
+                playerState = MOVING_FORWARD;
+            } 
+
+            else if(g_ButtonState.MovingBackward) {
+                frameCounter -= delta;
+                frameCounter += frameCounter < 0 ? FRAMES_LUCINA_WALKING : 0;
+                if(playerState != MOVING_FORWARD && playerState != MOVING_BACKWARD) frameCounter = 0; 
+
+                int frame = (int) (frameCounter * 50.0) % FRAMES_LUCINA_WALKING;
+                playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.001_WALK_" + to_string(frame);
+                playerState = MOVING_BACKWARD;
+            }
+
+            else if(g_ButtonState.MovingRight || g_ButtonState.MovingLeft) {
+                frameCounter += delta;
+                if(playerState != MOVING_SIDEWAYS) frameCounter = 0; 
+
+                int frame = (int) (frameCounter * 50.0) % FRAMES_LUCINA_LEFT_WALKING;
+                playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.001_LEFT_WALK_" + to_string(frame);
+                playerState = MOVING_SIDEWAYS;
+            }
+            
+            else {
+                frameCounter += delta;
+                if(playerState != IDLE) frameCounter = 0;  
+
+                int frame = (int) (frameCounter * 50.0) % FRAMES_LUCINA_IDLE;
+                playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.001_IDLE_" + to_string(frame);
+                playerState = IDLE;
+            }
+
             if(g_ButtonState.MovingUp) g_PlayerCamera.position += speed * delta * UP_VECTOR;
             if(g_ButtonState.MovingDown) g_PlayerCamera.position -= speed * delta * UP_VECTOR;
 
@@ -575,8 +625,18 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
     g_ShouldPlayerRotate = false;
     glfwSetCursorPosCallback(window, cursorPosCallbackOnGameLost);
 
-    if(isGameLost) while(!glfwWindowShouldClose(window) && !g_ButtonState.R)
+    if(isGameLost){
+
+    float initialTime = glfwGetTime();
+    float currentTime = glfwGetTime() - initialTime;
+    frameCounter = 0.0;
+
+    while(!glfwWindowShouldClose(window) && !g_ButtonState.R)
     {
+        float lastTime = currentTime;
+        currentTime = glfwGetTime() - initialTime;
+        float delta = currentTime - lastTime;
+
         //Pintamos tudo de branco e reiniciamos o Z-BUFFER
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -604,12 +664,18 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
         glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
+        frameCounter += delta;    
+        int frame = min((int) (frameCounter * 25.0), FRAMES_LUCINA_DEATH - 1);
+        playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.002_DEATH_" + to_string(frame);
+        playerState = DEATH;
+
         DrawWorld(true, true);
 
         PrintStringCenter(window, "YOU LOST!\n Press R to play again", 2.0f);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+        }
     }
 
     if(isGameWon) while(!glfwWindowShouldClose(window) && !g_ButtonState.R)
@@ -654,12 +720,7 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
 
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, LUCINA);
-
-        float speed = 50.0;
-        int frame = (int) (glfwGetTime() * speed) % FRAMES_LUCINA;
-        string name = ("vsn_mesh_0_body_mesh_mesh_0_body_mesh.001" + to_string(frame));
-
-        DrawVirtualObject(name.c_str());
+        DrawVirtualObject(playerModel.c_str());
     }
 
     if (drawCamera) {

@@ -24,7 +24,11 @@
 #define CORRIDOR2 8
 
 #define FRAMES_REAPER 112 //max = 112
-#define FRAMES_LUCINA 30 //max = 30
+#define FRAMES_LUCINA_WALKING 30  //max = 30
+#define FRAMES_LUCINA_IDLE 72  //max = 72
+#define FRAMES_LUCINA_LEFT_WALKING 30  //max = 30
+#define FRAMES_LUCINA_DEATH 50  //max = 50
+
 
 class BoundingBox {
     public:
