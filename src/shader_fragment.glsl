@@ -30,6 +30,7 @@ uniform mat4 projection;
 #define REAPER 6
 #define LUCINA 7
 #define CORRIDOR2 8
+#define DRONE 9
 
 uniform int object_id;
 
@@ -82,6 +83,7 @@ sampler2D selectReaperTexture() {
 }
 
 uniform sampler2D LucinaTexture;
+uniform sampler2D DroneTexture;
 
 // Constantes
 #define M_PI   3.14159265358979323846
@@ -156,6 +158,13 @@ void main()
         V = texcoords.y;
      
         TextureColor = texture(LucinaTexture, vec2(U,V)).rgb;
+    }
+
+    else if (object_id == DRONE){
+        U = texcoords.x;
+        V = texcoords.y;
+     
+        TextureColor = texture(DroneTexture, vec2(U,V)).rgb;
     }
 
     else if(object_id == CORRIDOR2){

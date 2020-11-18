@@ -95,6 +95,9 @@ int main(int argc, char* argv[])
     //Dark Brick Wall texture
     "dark_brick_wall.png",
     "dark_brick_wall2.png",
+
+    //Drone texture
+    "drone.png",
     };
 
     for(int i = 0; i < texturesList.size(); i++)
@@ -135,6 +138,7 @@ int main(int argc, char* argv[])
     "dragon.obj",
     "reaper.obj",
     "lucina.obj",
+    "drone.obj",
     };
 
     for(int i = 0; i < modelsList.size(); i++)

@@ -48,14 +48,16 @@ bool collisionDetect (Camera g_PlayerCamera);
 #define PLANE  2
 #define LINK  3
 #define CORRIDOR 4
+#define DRONE 9
 
 int g_InstanceSelectedId = 0;
 std::vector<ModelInstance> instances = {};
 ModelInstance* g_InstanceSelected;
 
-Camera INITIAL_PLAYER_CAMERA(0.0, 1.0, -2.75, -0.24, 18.85);
+Camera INITIAL_PLAYER_CAMERA(0.0, 1.0, 0.0, -0.28, 11);
 Camera g_PlayerCamera = INITIAL_PLAYER_CAMERA;
-Camera g_FixedCamera(-1.052, 1.917, 2.0, -0.28, 20.39);
+Camera INITIAL_CAMERA(-0.0, 1.66, 0.0, -0.44, 4.66);
+Camera g_FixedCamera = INITIAL_CAMERA;
 
 bool g_ShouldPlayerRotate = true;
 
@@ -83,6 +85,12 @@ struct ButtonStates {
     bool X = false;
     bool C = false;
     bool V = false;
+
+    bool LeftArrow = false;
+    bool RightArrow = false;
+    bool UpArrow = false;
+    bool DownArrow = false;
+
 
     bool R = false;
 
@@ -113,7 +121,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         else glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
-    if (IsButtonPressed(GLFW_KEY_LEFT))
+    if (IsButtonPressed(GLFW_KEY_J))
     {
         g_InstanceSelectedId--;
 
@@ -124,7 +132,7 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
         g_InstanceSelected = &instances[g_InstanceSelectedId];
     }
 
-    if (IsButtonPressed(GLFW_KEY_RIGHT))
+    if (IsButtonPressed(GLFW_KEY_K))
     {
         g_InstanceSelectedId++;
 
@@ -158,6 +166,11 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
     updateButtonState(&g_ButtonState.C, GLFW_KEY_C);
     updateButtonState(&g_ButtonState.V, GLFW_KEY_V);
     updateButtonState(&g_ButtonState.R, GLFW_KEY_R);
+
+    updateButtonState(&g_ButtonState.LeftArrow, GLFW_KEY_LEFT);
+    updateButtonState(&g_ButtonState.RightArrow, GLFW_KEY_RIGHT);
+    updateButtonState(&g_ButtonState.UpArrow, GLFW_KEY_UP);
+    updateButtonState(&g_ButtonState.DownArrow, GLFW_KEY_DOWN);
 
     if(IsButtonPressed(GLFW_KEY_P)) g_ButtonState.InputMode = PLAY;
     if(IsButtonPressed(GLFW_KEY_O)) g_ButtonState.InputMode = EDIT;
@@ -239,7 +252,7 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 }
 
 // Checa se é possível mover o personagem na direção mostrada e o move
-void tryToMove(glm::vec4 direction);
+void tryToMove(glm::vec4 direction, glm::vec4* position, float size);
 
 enum PlayerState {
     MOVING_FORWARD,
@@ -261,6 +274,7 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
     glfwSetCursorPosCallback(window, CursorPosCallback);
 
     g_PlayerCamera = INITIAL_PLAYER_CAMERA;
+    g_FixedCamera = INITIAL_CAMERA;
 
     instances = {};
     spawnMaze(&instances);
@@ -320,10 +334,10 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
             // Movimentamos o personagem se alguma tecla estiver pressionada
             float speed = 2.0f * (g_ButtonState.Shift ? 10.0 : 1.0) * (g_ButtonState.Ctrl ? 0.1 : 1.0);
 
-            if(g_ButtonState.MovingForward) tryToMove(speed * delta * g_PlayerCamera.getRelativeForward());
-            if(g_ButtonState.MovingBackward) tryToMove(-1.0f * speed * delta * g_PlayerCamera.getRelativeForward());
-            if(g_ButtonState.MovingLeft) tryToMove(speed * delta * g_PlayerCamera.getRelativeLeft());
-            if(g_ButtonState.MovingRight) tryToMove(-1.0f * speed * delta * g_PlayerCamera.getRelativeLeft());
+            if(g_ButtonState.MovingForward) tryToMove(speed * delta * g_PlayerCamera.getRelativeForward(), &g_PlayerCamera.position, 0.2);
+            if(g_ButtonState.MovingBackward) tryToMove(-1.0f * speed * delta * g_PlayerCamera.getRelativeForward(), &g_PlayerCamera.position, 0.2);
+            if(g_ButtonState.MovingLeft) tryToMove(speed * delta * g_PlayerCamera.getRelativeLeft(), &g_PlayerCamera.position, 0.2);
+            if(g_ButtonState.MovingRight) tryToMove(-1.0f * speed * delta * g_PlayerCamera.getRelativeLeft(), &g_PlayerCamera.position, 0.2);
 
             if(g_ButtonState.MovingForward) {
                 frameCounter += delta;    
@@ -374,6 +388,12 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
                 if(g_ButtonState.MovingUp) g_InstanceSelected->position += speed * delta * UP_VECTOR;
                 if(g_ButtonState.MovingDown) g_InstanceSelected->position -= speed * delta * UP_VECTOR;
             }
+
+            
+            if(g_ButtonState.UpArrow) tryToMove(speed * delta * g_FixedCamera.getRelativeForward(), & g_FixedCamera.position, 0.25);
+            if(g_ButtonState.DownArrow) tryToMove(-speed * delta * g_FixedCamera.getRelativeForward(), & g_FixedCamera.position, 0.25);
+            if(g_ButtonState.LeftArrow) g_FixedCamera.theta += speed * delta;
+            if(g_ButtonState.RightArrow) g_FixedCamera.theta -= speed * delta;
 
             if(g_ButtonState.Z) g_InstanceSelected->rotation.x += delta * (g_ButtonState.Shift ? -1 : 1);
             if(g_ButtonState.X) g_InstanceSelected->rotation.y += delta * (g_ButtonState.Shift ? -1 : 1);
@@ -535,14 +555,14 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
 
     if (drawCamera) {
         model = Matrix_Translate(g_FixedCamera.position.x, g_FixedCamera.position.y, g_FixedCamera.position.z)
-            // * Matrix_Translate(g_FixedCamera.position)
+            * Matrix_Translate(0.0, 0.0, 0.0)
             * Matrix_Rotate_Y(g_FixedCamera.theta)
             * Matrix_Rotate_X(g_FixedCamera.phi + 3.141592 * 0.25)
             * Matrix_Scale(0.01, 0.01, 0.01);
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, PLANE);
+        glUniform1i(object_id_uniform, DRONE);
 
-        DrawVirtualObject("camera_reference");
+        DrawVirtualObject("drone");
     }
 
     for(int i = 0; i < instances.size(); i++) {
@@ -563,28 +583,28 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
     }
 }
 
-void tryToMove(glm::vec4 direction){
+void tryToMove(glm::vec4 direction, glm::vec4* position, float size){
     //Checa se pode fazer o movimento inteiro
-    glm::vec4 newPosition = g_PlayerCamera.position + direction;
-    BoundingBox newPositionBB = BoundingBox(newPosition, 0.2);
+    glm::vec4 newPosition = *position + direction;
+    BoundingBox newPositionBB = BoundingBox(newPosition, size);
     if(!doObjectCollidesWithInstancesArray(&newPositionBB, instances)){
-        g_PlayerCamera.position = newPosition;
+        *position = newPosition;
         return;
     }
 
     //Se não dar para fazer o movimento inteiro, checa se dá para fazer o movimento em X
-    glm::vec4 newPositionX = g_PlayerCamera.position + glm::vec4(direction.x, 0.0, 0.0, 0.0);
-    BoundingBox newPositionBBx = BoundingBox(newPositionX, 0.2);
+    glm::vec4 newPositionX = *position + glm::vec4(direction.x, 0.0, 0.0, 0.0);
+    BoundingBox newPositionBBx = BoundingBox(newPositionX, size);
     if(!doObjectCollidesWithInstancesArray(&newPositionBBx, instances)){
-        g_PlayerCamera.position = newPositionX;
+        *position = newPositionX;
         return;
     }
 
     //Se não dar para fazer o movimento em X, checa se dá para fazer o movimento em Y
-    glm::vec4 newPositionZ = g_PlayerCamera.position + glm::vec4(0.0, 0.0, direction.z, 0.0);
-    BoundingBox newPositionBBZ = BoundingBox(newPositionZ, 0.2);
+    glm::vec4 newPositionZ = *position + glm::vec4(0.0, 0.0, direction.z, 0.0);
+    BoundingBox newPositionBBZ = BoundingBox(newPositionZ, size);
     if(!doObjectCollidesWithInstancesArray(&newPositionBBZ, instances)){
-        g_PlayerCamera.position = newPositionZ;
+        *position = newPositionZ;
         return;
     }
 }
