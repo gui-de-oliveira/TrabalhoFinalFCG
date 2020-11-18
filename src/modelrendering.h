@@ -89,7 +89,7 @@ void DrawVirtualObject(const char* object_name); // Desenha um objeto armazenado
 void PrintObjModelInfo(ObjModel*); // Função para debugging
 
 // Constrói triângulos para futura renderização a partir de um ObjModel.
-void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
+void BuildTrianglesAndAddToVirtualScene(ObjModel* model, int frame)
 {
     GLuint vertex_array_object_id;
     glGenVertexArrays(1, &vertex_array_object_id);
@@ -177,7 +177,10 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
         size_t last_index = indices.size() - 1;
 
         SceneObject theobject;
-        theobject.name           = model->shapes[shape].name;
+        std::string shapeName = model->shapes[shape].name;
+        if(frame > -1) shapeName += to_string(frame);
+
+        theobject.name           = shapeName;
         theobject.first_index    = first_index; // Primeiro índice
         theobject.num_indices    = last_index - first_index + 1; // Número de indices
         theobject.rendering_mode = GL_TRIANGLES;       // Índices correspondem ao tipo de rasterização GL_TRIANGLES.
@@ -186,9 +189,9 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
         theobject.bbox_min = bbox_min;
         theobject.bbox_max = bbox_max;
 
-        g_VirtualScene[model->shapes[shape].name] = theobject;
+        g_VirtualScene[shapeName] = theobject;
 
-        cout << model->shapes[shape].name << endl;
+        cout << shapeName << endl;
     }
 
     GLuint VBO_model_coefficients_id;
@@ -257,6 +260,11 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
     // "Desligamos" o VAO, evitando assim que operações posteriores venham a
     // alterar o mesmo. Isso evita bugs.
     glBindVertexArray(0);
+}
+
+void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
+{
+    BuildTrianglesAndAddToVirtualScene(model, -1);
 }
 
 // Função que computa as normais de um ObjModel, caso elas não tenham sido

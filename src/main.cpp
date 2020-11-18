@@ -108,6 +108,20 @@ int main(int argc, char* argv[])
     "reaper.obj",
     };
 
+
+    for(int i = 0; i < FRAMES_REAPER; i++)
+    {
+        std::stringstream number;
+        number.fill('0');
+        number.width(3);
+        number << (i);
+        string fileName = "../../data/reaper/reaper_000" + number.str() + ".obj";
+
+        ObjModel models(fileName.c_str());
+        ComputeNormals(&models);
+        BuildTrianglesAndAddToVirtualScene(&models, i);
+    }
+
     for(int i = 0; i < modelsList.size(); i++)
     {
         ObjModel models((path + modelsList[i]).c_str());
@@ -124,6 +138,7 @@ int main(int argc, char* argv[])
     while(true)
     {
         Game(window, &(g_Viewport.width), &(g_Viewport.height), &(g_Viewport.screenRatio));
+        return 0;
     }
 }
 

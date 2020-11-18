@@ -148,9 +148,16 @@ bool doObjectCollidesWithInstancesArray(BoundingBox* obj, std::vector<ModelInsta
 #define DRAGON 5
 #define REAPER 6
 
+#define FRAMES_REAPER 112 //max = 112
+
 void drawEnemy(){
     glUniform1i(object_id_uniform, REAPER);
-    DrawVirtualObject("foe120_model");
+
+    float speed = 50.0;
+    int frame = (int) (glfwGetTime() * speed) % FRAMES_REAPER;
+    string name = ("foe120_model" + to_string(frame));
+
+    DrawVirtualObject(name.c_str());
 }
 
 void drawSphere(){
