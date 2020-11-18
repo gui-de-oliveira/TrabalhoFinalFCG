@@ -391,7 +391,8 @@ enum PlayerState {
     MOVING_FORWARD,
     MOVING_BACKWARD,
     MOVING_SIDEWAYS,
-    IDLE
+    IDLE,
+    DEATH
 };
 
 PlayerState playerState = IDLE;
@@ -624,8 +625,18 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
     g_ShouldPlayerRotate = false;
     glfwSetCursorPosCallback(window, cursorPosCallbackOnGameLost);
 
-    if(isGameLost) while(!glfwWindowShouldClose(window) && !g_ButtonState.R)
+    if(isGameLost){
+
+    float initialTime = glfwGetTime();
+    float currentTime = glfwGetTime() - initialTime;
+    frameCounter = 0.0;
+
+    while(!glfwWindowShouldClose(window) && !g_ButtonState.R)
     {
+        float lastTime = currentTime;
+        currentTime = glfwGetTime() - initialTime;
+        float delta = currentTime - lastTime;
+
         //Pintamos tudo de branco e reiniciamos o Z-BUFFER
         glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -653,12 +664,18 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
         glUniformMatrix4fv(view_uniform       , 1 , GL_FALSE , glm::value_ptr(view));
         glUniformMatrix4fv(projection_uniform , 1 , GL_FALSE , glm::value_ptr(projection));
 
+        frameCounter += delta;    
+        int frame = min((int) (frameCounter * 25.0), FRAMES_LUCINA_DEATH - 1);
+        playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.002_DEATH_" + to_string(frame);
+        playerState = DEATH;
+
         DrawWorld(true, true);
 
         PrintStringCenter(window, "YOU LOST!\n Press R to play again", 2.0f);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
+        }
     }
 
     if(isGameWon) while(!glfwWindowShouldClose(window) && !g_ButtonState.R)

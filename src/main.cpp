@@ -98,6 +98,27 @@ int main(int argc, char* argv[])
         LoadTextureImage((texturesPath + texturesList[i]).c_str());
     }
 
+    auto loadAnimationModels = [](int totalFrames, string filePreffix, string shapeSuffix){
+        for(int i = 0; i < totalFrames; i++)
+        {
+            std::stringstream number;
+            number.fill('0');
+            number.width(3);
+            number << (i);
+            string fileName = filePreffix + number.str() + ".obj";
+
+            ObjModel models(fileName.c_str());
+            ComputeNormals(&models);
+            BuildTrianglesAndAddToVirtualScene(&models, i, shapeSuffix);
+        }
+    };
+
+    loadAnimationModels(FRAMES_REAPER, "../../data/reaper/reaper_000", "");
+    loadAnimationModels(FRAMES_LUCINA_WALKING, "../../data/lucina_walking/lucina_000", "_WALK_");
+    loadAnimationModels(FRAMES_LUCINA_LEFT_WALKING, "../../data/lucina_left_walking/lucina_000", "_LEFT_WALK_");
+    loadAnimationModels(FRAMES_LUCINA_IDLE, "../../data/lucina_idle/lucina_000", "_IDLE_");
+    loadAnimationModels(FRAMES_LUCINA_DEATH, "../../data/lucina_death/lucina_000", "_DEATH_");
+
     string path = "../../data/";
     std::vector<string> modelsList = {
     "Link0.obj",
@@ -111,59 +132,6 @@ int main(int argc, char* argv[])
     "reaper.obj",
     "lucina.obj",
     };
-
-
-    for(int i = 0; i < FRAMES_REAPER; i++)
-    {
-        std::stringstream number;
-        number.fill('0');
-        number.width(3);
-        number << (i);
-        string fileName = "../../data/reaper/reaper_000" + number.str() + ".obj";
-
-        ObjModel models(fileName.c_str());
-        ComputeNormals(&models);
-        BuildTrianglesAndAddToVirtualScene(&models, i, "");
-    }
-
-    for(int i = 0; i < FRAMES_LUCINA_WALKING; i++)
-    {
-        std::stringstream number;
-        number.fill('0');
-        number.width(3);
-        number << (i);
-        string fileName = "../../data/lucina_walking/lucina_000" + number.str() + ".obj";
-
-        ObjModel models(fileName.c_str());
-        ComputeNormals(&models);
-        BuildTrianglesAndAddToVirtualScene(&models, i, "_WALK_");
-    }
-
-    for(int i = 0; i < FRAMES_LUCINA_LEFT_WALKING; i++)
-    {
-        std::stringstream number;
-        number.fill('0');
-        number.width(3);
-        number << (i);
-        string fileName = "../../data/lucina_left_walking/lucina_000" + number.str() + ".obj";
-
-        ObjModel models(fileName.c_str());
-        ComputeNormals(&models);
-        BuildTrianglesAndAddToVirtualScene(&models, i, "_LEFT_WALK_");
-    }
-
-    for(int i = 0; i < FRAMES_LUCINA_IDLE; i++)
-    {
-        std::stringstream number;
-        number.fill('0');
-        number.width(3);
-        number << (i);
-        string fileName = "../../data/lucina_idle/lucina_000" + number.str() + ".obj";
-
-        ObjModel models(fileName.c_str());
-        ComputeNormals(&models);
-        BuildTrianglesAndAddToVirtualScene(&models, i, "_IDLE_");
-    }
 
     for(int i = 0; i < modelsList.size(); i++)
     {
