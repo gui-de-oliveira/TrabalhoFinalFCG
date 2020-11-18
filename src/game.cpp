@@ -290,11 +290,15 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
     pushToInstances(&endGame, ModelInstance(&Sphere, glm::vec4(0.0, 1.0, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0));
     
     ModelInstance *enemyInstance;
-    pushToInstances(&enemyInstance, ModelInstance(&Enemy, glm::vec4(-8.0, 0.0, 0.0, 1.0), 0.0056));
+    pushToInstances(&enemyInstance, ModelInstance(&Enemy, glm::vec4(-8.5, 0.0, -6.0, 1.0), 0.0056));
     Reaper enemy(enemyInstance, &instances);
 
-    bool isGameWon = false;
+    ModelInstance *enemyInstance2;
+    pushToInstances(&enemyInstance2, ModelInstance(&Enemy, glm::vec4(-8.5, 0.0, -6.0, 1.0), 0.0056));
+    Reaper enemy2(enemyInstance2, &instances, 10.0);
+
     bool isGameLost = false;
+    bool isGameWon = false;
 
     glm::vec4 offset;
     float initialTime = glfwGetTime();
@@ -330,6 +334,7 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
             dragonInstance->position.y += offset(1.0, 1.0);
 
             enemy.applyEnemyBehaviour(delta, &isGameLost, g_PlayerCamera.position);
+            enemy2.applyEnemyBehaviour(delta, &isGameLost, g_PlayerCamera.position);
 
             // Movimentamos o personagem se alguma tecla estiver pressionada
             float speed = 2.0f * (g_ButtonState.Shift ? 10.0 : 1.0) * (g_ButtonState.Ctrl ? 0.1 : 1.0);

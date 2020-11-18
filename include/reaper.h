@@ -18,9 +18,18 @@ class Reaper {
     ModelInstance* instance;
     std::vector<ModelInstance>* instances;
     
-    Reaper(ModelInstance* _instance, std::vector<ModelInstance>* _instances) {
+    Reaper(ModelInstance* _instance, std::vector<ModelInstance>* _instances, float _timeOffset = 0.0) {
         instance = _instance;
         instances = _instances;
+
+        if(_timeOffset != 0.0) {
+            glm::vec4 displacement = getPositionDisplacement(_timeOffset);
+            instance->position += displacement;
+            glm::vec2 displacement2D = glm::vec2(displacement.x, displacement.z);
+
+            float angle = calculateAngle(displacement2D, glm::vec2(1.0, 0.0));
+            instance->rotation.z = -angle;
+        }
     };
 
     glm::vec4 getReaperPath(float time) {
@@ -31,8 +40,8 @@ class Reaper {
             return time - t * maxValue;
         };
 
-        float height = 1.0;
-        float width = 1.5;
+        float height = 3 * 2.0;
+        float width = 1.7;
 
         float dt = repeating(time, 4);
         float ds = repeating(dt, 1);
