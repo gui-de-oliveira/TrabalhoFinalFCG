@@ -13,6 +13,19 @@
 #define PI 3.1415
 #define HALF_PI PI / 2.0
 
+#define SPHERE 0
+#define BUNNY  1
+#define PLANE  2
+#define LINK  3
+#define CORRIDOR 4
+#define DRAGON 5
+#define REAPER 6
+#define LUCINA 7
+#define CORRIDOR2 8
+
+#define FRAMES_REAPER 112 //max = 112
+#define FRAMES_LUCINA 30 //max = 30
+
 class BoundingBox {
     public:
     glm::vec4 min;
@@ -139,18 +152,6 @@ bool doObjectCollidesWithInstancesArray(BoundingBox* obj, std::vector<ModelInsta
     }
     return false;
 }
-
-#define SPHERE 0
-#define BUNNY  1
-#define PLANE  2
-#define LINK  3
-#define CORRIDOR 4
-#define DRAGON 5
-#define REAPER 6
-#define LUCINA 7
-
-#define FRAMES_REAPER 112 //max = 112
-#define FRAMES_LUCINA 30 //max = 30
 
 void drawEnemy(){
     glUniform1i(object_id_uniform, REAPER);

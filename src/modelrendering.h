@@ -390,7 +390,9 @@ void LoadShadersFromFiles()
 
     //Lucina Texture
     glUniform1i(glGetUniformLocation(program_id, "LucinaTexture"), 8);
-    
+    //Wall Texture
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage_Wall"), 9);
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage_Wall2"), 10);
     glUseProgram(0);
 }
 

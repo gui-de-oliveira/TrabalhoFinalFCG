@@ -7,13 +7,15 @@
 #include "../src/modelrendering.h"
 
 void drawBlockGeneric(bool drawXplus, bool drawXminus, bool drawZplus, bool drawZminus){
-    glUniform1i(object_id_uniform, LINK);
+    glUniform1i(object_id_uniform, CORRIDOR);
     DrawVirtualObject("Floor_1");
     if (drawZminus) DrawVirtualObject("WallY+_4");
     if (drawZplus) DrawVirtualObject("WallY-_5");
+    DrawVirtualObject("Ceiling_6");
+
+    glUniform1i(object_id_uniform, CORRIDOR2);
     if (drawXplus) DrawVirtualObject("WallX+_2");
     if (drawXminus) DrawVirtualObject("WallX-_3");
-    DrawVirtualObject("Ceiling_6");
 }
 
 std::function<void()> createBlockDrawFunction (bool drawXplus, bool drawXminus, bool drawZplus, bool drawZminus) {

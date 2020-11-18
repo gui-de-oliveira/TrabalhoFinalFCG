@@ -29,6 +29,7 @@ uniform mat4 projection;
 #define DRAGON 5
 #define REAPER 6
 #define LUCINA 7
+#define CORRIDOR2 8
 
 uniform int object_id;
 
@@ -40,7 +41,10 @@ uniform vec4 bbox_max;
 out vec4 color;
 out vec3 color3;
 
+bool noTexture = false;
 uniform sampler2D TextureImage_Link;
+uniform sampler2D TextureImage_Wall;
+uniform sampler2D TextureImage_Wall2;
 
 uniform sampler2D DragonTexture_0;
 uniform sampler2D DragonTexture_1;
@@ -105,18 +109,32 @@ void main()
 
     vec3 TextureColor;
 
-    if(object_id == LINK){
-        vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
+    if(object_id == CORRIDOR){
+        // float minx = bbox_min.x;
+        // float maxx = bbox_max.x;
 
-        vec4 p_vec = normalize(position_model - bbox_center);
+        // float miny = bbox_min.y;
+        // float maxy = bbox_max.y;
 
-        float theta = atan(p_vec.x, p_vec.z);
-        float phi = asin(p_vec.y);
+        // float minz = bbox_min.z;
+        // float maxz = bbox_max.z;
 
-        U = (theta + M_PI)/(2*M_PI);
-        V = (phi + M_PI_2)/M_PI;
+        // U = (position_model.x - bbox_min.x) / (bbox_max.x - bbox_min.x);
+        // V = (position_model.y - bbox_min.y) / (bbox_max.y - bbox_min.y);
 
-        TextureColor = texture(TextureImage_Link, vec2(U,V)).rgb;
+        // vec4 bbox_center = (bbox_min + bbox_max) / 2.0;
+
+        // vec4 p_vec = normalize(position_model - bbox_center);
+
+        // float theta = atan(p_vec.x, p_vec.z);
+        // float phi = asin(p_vec.y);
+
+        // U = (theta + M_PI)/(2*M_PI);
+        // V = (phi + M_PI_2)/M_PI;
+        U = texcoords.x;
+        V = texcoords.y;
+
+        TextureColor = texture(TextureImage_Wall, vec2(U,V)).rgb;
     }
 
     else if (object_id == DRAGON){
@@ -140,31 +158,32 @@ void main()
         TextureColor = texture(LucinaTexture, vec2(U,V)).rgb;
     }
 
-    // if(object_id == LINK){
-    //     float minx = bbox_min.x;
-    //     float maxx = bbox_max.x;
+    else if(object_id == CORRIDOR2){
+        // float minx = bbox_min.x;
+        // float maxx = bbox_max.x;
 
-    //     float miny = bbox_min.y;
-    //     float maxy = bbox_max.y;
+        // float miny = bbox_min.y;
+        // float maxy = bbox_max.y;
 
-    //     float minz = bbox_min.z;
-    //     float maxz = bbox_max.z;
+        // float minz = bbox_min.z;
+        // float maxz = bbox_max.z;
 
-    //     U = (position_model.x - bbox_min.x) / (bbox_max.x - bbox_min.x);
-    //     V = (position_model.y - bbox_min.y) / (bbox_max.y - bbox_min.y);
-    // }
+        // U = (position_model.x - bbox_min.x) / (bbox_max.x - bbox_min.x);
+        // V = (position_model.y - bbox_min.y) / (bbox_max.y - bbox_min.y);
 
-    else if(object_id == CORRIDOR){
+        U = texcoords.x;
+        V = texcoords.y;
+
+        TextureColor = texture(TextureImage_Wall2, vec2(U,V)).rgb;
+    }
+
+    else {
         Kd = vec3(0.5255, 0.0078, 0.0078);
         Ks = vec3(0.8,0.8,0.8);
         Ka = Kd/2;
         q = 32.0;
-
-        TextureColor = texture(TextureImage_Link, vec2(U,V)).rgb;
-    }
-
-    else {
-        TextureColor = texture(TextureImage_Link, vec2(U,V)).rgb;
+        //TextureColor = texture(TextureImage_Wall, vec2(U,V)).rgb;
+        noTexture = true;
     }
 
     vec3 I = vec3(1.0,1.0,1.0); // Espectro da fonte de iluminacao
@@ -173,11 +192,14 @@ void main()
     vec3 ambient_term = Ka*Ia;
     vec3 phong_specular_term  = Ks * I * pow(max(0,dot(r,v)),q);
 
-    color3 = lambert_diffuse_term + ambient_term + phong_specular_term;
+    
     
     // Equação de Iluminação
     float lambert = max(0, dot(n, l));
-    color3 = TextureColor * (lambert + 0.01);
+    if(noTexture)
+        color3 = lambert_diffuse_term + ambient_term + phong_specular_term;
+    else
+        color3 += TextureColor * (lambert + 0.01);
 
     color = vec4(color3.xyz, 1.0);
 

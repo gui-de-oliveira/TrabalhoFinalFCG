@@ -91,6 +91,10 @@ int main(int argc, char* argv[])
 
     //Lucina texture
     "lucina.png",
+
+    //Dark Brick Wall texture
+    "dark_brick_wall.png",
+    "dark_brick_wall2.png",
     };
 
     for(int i = 0; i < texturesList.size(); i++)
