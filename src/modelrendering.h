@@ -89,7 +89,7 @@ void DrawVirtualObject(const char* object_name); // Desenha um objeto armazenado
 void PrintObjModelInfo(ObjModel*); // Função para debugging
 
 // Constrói triângulos para futura renderização a partir de um ObjModel.
-void BuildTrianglesAndAddToVirtualScene(ObjModel* model, int frame)
+void BuildTrianglesAndAddToVirtualScene(ObjModel* model, int frame, string suffix)
 {
     GLuint vertex_array_object_id;
     glGenVertexArrays(1, &vertex_array_object_id);
@@ -177,7 +177,7 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model, int frame)
         size_t last_index = indices.size() - 1;
 
         SceneObject theobject;
-        std::string shapeName = model->shapes[shape].name;
+        std::string shapeName = model->shapes[shape].name + suffix;
         if(frame > -1) shapeName += to_string(frame);
 
         theobject.name           = shapeName;
@@ -264,7 +264,7 @@ void BuildTrianglesAndAddToVirtualScene(ObjModel* model, int frame)
 
 void BuildTrianglesAndAddToVirtualScene(ObjModel* model)
 {
-    BuildTrianglesAndAddToVirtualScene(model, -1);
+    BuildTrianglesAndAddToVirtualScene(model, -1, "");
 }
 
 // Função que computa as normais de um ObjModel, caso elas não tenham sido

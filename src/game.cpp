@@ -387,6 +387,17 @@ bool doesRayCollidesWithAnyWall(std::vector<ModelInstance> allInstances, glm::ve
     return false;
 };
 
+enum PlayerState {
+    MOVING_FORWARD,
+    MOVING_BACKWARD,
+    MOVING_LEFT,
+    MOVING_RIGHT,
+    IDLE
+};
+
+PlayerState playerState = IDLE;
+float frameCounter = 0;
+std::string playerModel = "";
 
 int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
 {
@@ -501,6 +512,30 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
             if(g_ButtonState.MovingBackward) tryToMove(-1.0f * speed * delta * g_PlayerCamera.getRelativeForward());
             if(g_ButtonState.MovingLeft) tryToMove(speed * delta * g_PlayerCamera.getRelativeLeft());
             if(g_ButtonState.MovingRight) tryToMove(-1.0f * speed * delta * g_PlayerCamera.getRelativeLeft());
+
+            if(g_ButtonState.MovingForward || g_ButtonState.MovingLeft) {
+                frameCounter += delta;    
+                if(playerState == IDLE) frameCounter = 0;
+
+                int frame = (int) (frameCounter * 50.0) % FRAMES_LUCINA_WALKING;
+                playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.001_WALK_" + to_string(frame);
+                playerState = MOVING_FORWARD;
+            } else if(g_ButtonState.MovingBackward || g_ButtonState.MovingRight) {
+                frameCounter -= delta;
+                frameCounter += frameCounter < 0 ? FRAMES_LUCINA_WALKING : 0;
+                if(playerState == IDLE) frameCounter = 0; 
+
+                int frame = (int) (frameCounter * 50.0) % FRAMES_LUCINA_WALKING;
+                playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.001_WALK_" + to_string(frame);
+                playerState = MOVING_BACKWARD;
+            } else if(!g_ButtonState.MovingLeft && !g_ButtonState.MovingRight) {
+                frameCounter += delta;
+                if(playerState != IDLE) frameCounter = 0;  
+
+                int frame = (int) (frameCounter * 50.0) % FRAMES_LUCINA_IDLE;
+                playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.001_IDLE_" + to_string(frame);
+                playerState = IDLE;
+            }
 
             if(g_ButtonState.MovingUp) g_PlayerCamera.position += speed * delta * UP_VECTOR;
             if(g_ButtonState.MovingDown) g_PlayerCamera.position -= speed * delta * UP_VECTOR;
@@ -654,12 +689,7 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
 
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
         glUniform1i(object_id_uniform, LUCINA);
-
-        float speed = 50.0;
-        int frame = (int) (glfwGetTime() * speed) % FRAMES_LUCINA;
-        string name = ("vsn_mesh_0_body_mesh_mesh_0_body_mesh.001" + to_string(frame));
-
-        DrawVirtualObject(name.c_str());
+        DrawVirtualObject(playerModel.c_str());
     }
 
     if (drawCamera) {

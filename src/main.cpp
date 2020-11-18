@@ -123,10 +123,10 @@ int main(int argc, char* argv[])
 
         ObjModel models(fileName.c_str());
         ComputeNormals(&models);
-        BuildTrianglesAndAddToVirtualScene(&models, i);
+        BuildTrianglesAndAddToVirtualScene(&models, i, "");
     }
 
-    for(int i = 0; i < FRAMES_LUCINA; i++)
+    for(int i = 0; i < FRAMES_LUCINA_WALKING; i++)
     {
         std::stringstream number;
         number.fill('0');
@@ -136,7 +136,20 @@ int main(int argc, char* argv[])
 
         ObjModel models(fileName.c_str());
         ComputeNormals(&models);
-        BuildTrianglesAndAddToVirtualScene(&models, i);
+        BuildTrianglesAndAddToVirtualScene(&models, i, "_WALK_");
+    }
+
+    for(int i = 0; i < FRAMES_LUCINA_IDLE; i++)
+    {
+        std::stringstream number;
+        number.fill('0');
+        number.width(3);
+        number << (i);
+        string fileName = "../../data/lucina_idle/lucina_000" + number.str() + ".obj";
+
+        ObjModel models(fileName.c_str());
+        ComputeNormals(&models);
+        BuildTrianglesAndAddToVirtualScene(&models, i, "_IDLE_");
     }
 
     for(int i = 0; i < modelsList.size(); i++)
