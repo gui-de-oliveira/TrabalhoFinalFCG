@@ -88,6 +88,9 @@ int main(int argc, char* argv[])
     //Reaper textures
     "reaper_01.png",
     "reaper_02.png",
+
+    //Lucina texture
+    "lucina.png",
     };
 
     for(int i = 0; i < texturesList.size(); i++)
@@ -106,6 +109,7 @@ int main(int argc, char* argv[])
     "sphere.obj",
     "dragon.obj",
     "reaper.obj",
+    "lucina.obj",
     };
 
 
@@ -116,6 +120,19 @@ int main(int argc, char* argv[])
         number.width(3);
         number << (i);
         string fileName = "../../data/reaper/reaper_000" + number.str() + ".obj";
+
+        ObjModel models(fileName.c_str());
+        ComputeNormals(&models);
+        BuildTrianglesAndAddToVirtualScene(&models, i);
+    }
+
+    for(int i = 0; i < FRAMES_LUCINA; i++)
+    {
+        std::stringstream number;
+        number.fill('0');
+        number.width(3);
+        number << (i);
+        string fileName = "../../data/lucina_walking/lucina_000" + number.str() + ".obj";
 
         ObjModel models(fileName.c_str());
         ComputeNormals(&models);

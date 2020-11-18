@@ -28,6 +28,7 @@ uniform mat4 projection;
 #define CORRIDOR 4
 #define DRAGON 5
 #define REAPER 6
+#define LUCINA 7
 
 uniform int object_id;
 
@@ -75,6 +76,8 @@ sampler2D selectReaperTexture() {
         default: return ReaperTexture_0;
     }
 }
+
+uniform sampler2D LucinaTexture;
 
 // Constantes
 #define M_PI   3.14159265358979323846
@@ -128,6 +131,13 @@ void main()
         V = texcoords.y;
      
         TextureColor = texture(selectReaperTexture(), vec2(U,V)).rgb;
+    }
+
+    else if (object_id == LUCINA){
+        U = texcoords.x;
+        V = texcoords.y;
+     
+        TextureColor = texture(LucinaTexture, vec2(U,V)).rgb;
     }
 
     // if(object_id == LINK){

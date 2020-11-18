@@ -147,8 +147,10 @@ bool doObjectCollidesWithInstancesArray(BoundingBox* obj, std::vector<ModelInsta
 #define CORRIDOR 4
 #define DRAGON 5
 #define REAPER 6
+#define LUCINA 7
 
 #define FRAMES_REAPER 112 //max = 112
+#define FRAMES_LUCINA 30 //max = 30
 
 void drawEnemy(){
     glUniform1i(object_id_uniform, REAPER);

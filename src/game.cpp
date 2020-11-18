@@ -52,7 +52,7 @@ int g_InstanceSelectedId = 0;
 std::vector<ModelInstance> instances = {};
 ModelInstance* g_InstanceSelected;
 
-Camera INITIAL_PLAYER_CAMERA(0.0, 0.55, -2.75, -0.24, 18.85);
+Camera INITIAL_PLAYER_CAMERA(0.0, 1.0, -2.75, -0.24, 18.85);
 Camera g_PlayerCamera = INITIAL_PLAYER_CAMERA;
 Camera g_FixedCamera(-1.052, 1.917, 2.0, -0.28, 20.39);
 
@@ -645,18 +645,21 @@ void DrawWorld(bool drawPlayer, bool drawCamera)
     if (drawPlayer) {
         // Desenhamos o player
         model = Matrix_Translate(g_PlayerCamera.position.x, g_PlayerCamera.position.y, g_PlayerCamera.position.z)
-            * Matrix_Translate(0.0, -0.5, 0.0)
-            * Matrix_Scale(0.5f, 0.5f, 0.5f);
+            * Matrix_Translate(0.0, -1.0, 0.0)
+            * Matrix_Scale(1.5f, 1.5f, 1.5f);
             
         if (g_ShouldPlayerRotate) {
-            model *= Matrix_Rotate_Y(g_PlayerCamera.theta)
-                 * Matrix_Rotate_X(-g_PlayerCamera.phi * 0.5);
+            model *= Matrix_Rotate_Y(g_PlayerCamera.theta);
         }
 
         glUniformMatrix4fv(model_uniform, 1 , GL_FALSE , glm::value_ptr(model));
-        glUniform1i(object_id_uniform, LINK);
+        glUniform1i(object_id_uniform, LUCINA);
 
-        DrawVirtualObject("link_model_0");
+        float speed = 50.0;
+        int frame = (int) (glfwGetTime() * speed) % FRAMES_LUCINA;
+        string name = ("vsn_mesh_0_body_mesh_mesh_0_body_mesh.001" + to_string(frame));
+
+        DrawVirtualObject(name.c_str());
     }
 
     if (drawCamera) {

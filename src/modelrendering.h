@@ -387,6 +387,9 @@ void LoadShadersFromFiles()
     //Reaper textures
     glUniform1i(glGetUniformLocation(program_id, "ReaperTexture_0"), 6);
     glUniform1i(glGetUniformLocation(program_id, "ReaperTexture_1"), 7);
+
+    //Lucina Texture
+    glUniform1i(glGetUniformLocation(program_id, "LucinaTexture"), 8);
     
     glUseProgram(0);
 }
