@@ -139,6 +139,19 @@ int main(int argc, char* argv[])
         BuildTrianglesAndAddToVirtualScene(&models, i, "_WALK_");
     }
 
+    for(int i = 0; i < FRAMES_LUCINA_LEFT_WALKING; i++)
+    {
+        std::stringstream number;
+        number.fill('0');
+        number.width(3);
+        number << (i);
+        string fileName = "../../data/lucina_left_walking/lucina_000" + number.str() + ".obj";
+
+        ObjModel models(fileName.c_str());
+        ComputeNormals(&models);
+        BuildTrianglesAndAddToVirtualScene(&models, i, "_LEFT_WALK_");
+    }
+
     for(int i = 0; i < FRAMES_LUCINA_IDLE; i++)
     {
         std::stringstream number;

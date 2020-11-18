@@ -390,8 +390,7 @@ bool doesRayCollidesWithAnyWall(std::vector<ModelInstance> allInstances, glm::ve
 enum PlayerState {
     MOVING_FORWARD,
     MOVING_BACKWARD,
-    MOVING_LEFT,
-    MOVING_RIGHT,
+    MOVING_SIDEWAYS,
     IDLE
 };
 
@@ -434,7 +433,7 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
     ModelInstance *enemyInstance, *dragonInstance, *endGame;
     pushToInstances(&enemyInstance, ModelInstance(&Enemy, glm::vec4(3.0, 0.0, 0.0, 1.0), 0.0056));
     pushToInstances(&dragonInstance, ModelInstance(&Dragon, glm::vec4(0.0, -1.15, 15.0, 1.0), glm::vec3(0.0, PI, 0.0), 13.4));
-    pushToInstances(&endGame, ModelInstance(&Sphere, glm::vec4(0.0, 0.5, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0));
+    pushToInstances(&endGame, ModelInstance(&Sphere, glm::vec4(0.0, 1.0, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0));
 
     bool isGameWon = false;
     bool isGameLost = false;
@@ -513,22 +512,37 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
             if(g_ButtonState.MovingLeft) tryToMove(speed * delta * g_PlayerCamera.getRelativeLeft());
             if(g_ButtonState.MovingRight) tryToMove(-1.0f * speed * delta * g_PlayerCamera.getRelativeLeft());
 
-            if(g_ButtonState.MovingForward || g_ButtonState.MovingLeft) {
+           
+
+            if(g_ButtonState.MovingForward) {
                 frameCounter += delta;    
-                if(playerState == IDLE) frameCounter = 0;
+                if(playerState != MOVING_FORWARD && playerState != MOVING_BACKWARD) frameCounter = 0; 
 
                 int frame = (int) (frameCounter * 50.0) % FRAMES_LUCINA_WALKING;
                 playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.001_WALK_" + to_string(frame);
                 playerState = MOVING_FORWARD;
-            } else if(g_ButtonState.MovingBackward || g_ButtonState.MovingRight) {
+            } 
+
+            else if(g_ButtonState.MovingBackward) {
                 frameCounter -= delta;
                 frameCounter += frameCounter < 0 ? FRAMES_LUCINA_WALKING : 0;
-                if(playerState == IDLE) frameCounter = 0; 
+                if(playerState != MOVING_FORWARD && playerState != MOVING_BACKWARD) frameCounter = 0; 
 
                 int frame = (int) (frameCounter * 50.0) % FRAMES_LUCINA_WALKING;
                 playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.001_WALK_" + to_string(frame);
                 playerState = MOVING_BACKWARD;
-            } else if(!g_ButtonState.MovingLeft && !g_ButtonState.MovingRight) {
+            }
+
+            else if(g_ButtonState.MovingRight || g_ButtonState.MovingLeft) {
+                frameCounter += delta;
+                if(playerState != MOVING_SIDEWAYS) frameCounter = 0; 
+
+                int frame = (int) (frameCounter * 50.0) % FRAMES_LUCINA_LEFT_WALKING;
+                playerModel = "vsn_mesh_0_body_mesh_mesh_0_body_mesh.001_LEFT_WALK_" + to_string(frame);
+                playerState = MOVING_SIDEWAYS;
+            }
+            
+            else {
                 frameCounter += delta;
                 if(playerState != IDLE) frameCounter = 0;  
 
