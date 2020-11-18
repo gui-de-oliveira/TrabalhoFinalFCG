@@ -79,7 +79,30 @@ ModelType* getBlock(bool Xplus, bool Xminus, bool Zplus, bool Zminus){
 #define BLOCK_SIZE 2
 
 ModelInstance createBlock(glm::vec2 position, bool Xplus, bool Xminus, bool Yplus, bool Yminus){
-    return ModelInstance(getBlock(Xminus, Xplus, Yplus, Yminus), glm::vec4(-position.x * BLOCK_SIZE, 0.0, position.y * BLOCK_SIZE, 1.0));
+    return ModelInstance(getBlock(Xminus, Xplus, Yplus, Yminus), glm::vec4(-position.x * BLOCK_SIZE, 0.0, position.y * BLOCK_SIZE, 1.0), BLOCK_SIZE / 2.0);
+}
+
+void spawnMaze(std::vector<ModelInstance>* instances) {
+    std::vector<ModelInstance> mapBlocks = {
+        createBlock(glm::vec2(0, -1), true, true, false, true),
+        createBlock(glm::vec2(0, 0), true, false, false, false),
+        createBlock(glm::vec2(0, 1), true, false, false, false),
+        createBlock(glm::vec2(0, 2), true, true, false, false),
+
+        createBlock(glm::vec2(-1, 0), false, false, false, true),
+        createBlock(glm::vec2(-1, 1), false, false, true, false),
+
+        createBlock(glm::vec2(-2, 0), false, false, false, true),
+        createBlock(glm::vec2(-2, 1), false, false, true, false),
+
+        createBlock(glm::vec2(-3, 0), false, true, false, true),
+        createBlock(glm::vec2(-3, 1), false, true, true, false),
+    };
+
+    while(mapBlocks.size() > 0){
+        instances->push_back(mapBlocks[mapBlocks.size() - 1]);
+        mapBlocks.pop_back();
+    }
 }
 
 #endif // _BLOCK_H

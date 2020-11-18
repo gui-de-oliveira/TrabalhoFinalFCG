@@ -153,7 +153,6 @@ int main(int argc, char* argv[])
     while(true)
     {
         Game(window, &(g_Viewport.width), &(g_Viewport.height), &(g_Viewport.screenRatio));
-        return 0;
     }
 }
 

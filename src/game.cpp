@@ -262,22 +262,8 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
 
     g_PlayerCamera = INITIAL_PLAYER_CAMERA;
 
-    instances =
-    {
-        createBlock(glm::vec2(0, -1), true, true, false, true),
-        createBlock(glm::vec2(0, 0), true, false, false, false),
-        createBlock(glm::vec2(0, 1), true, false, false, false),
-        createBlock(glm::vec2(0, 2), true, true, false, false),
-
-        createBlock(glm::vec2(-1, 0), false, false, false, true),
-        createBlock(glm::vec2(-1, 1), false, false, true, false),
-
-        createBlock(glm::vec2(-2, 0), false, false, false, true),
-        createBlock(glm::vec2(-2, 1), false, false, true, false),
-
-        createBlock(glm::vec2(-3, 0), false, true, false, true),
-        createBlock(glm::vec2(-3, 1), false, true, true, false),
-    };
+    instances = {};
+    spawnMaze(&instances);
     g_InstanceSelected = &instances[0];
 
     auto pushToInstances = [&](ModelInstance** ptr, ModelInstance modelInstance){
