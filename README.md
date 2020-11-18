@@ -5,6 +5,8 @@
 - [ ] Criar um mapa maior
 - [ ] Usar mais de uma câmera
 - [ ] Fazer o Guarda parar quando estiver na visão da câmera
+- [ ] Trocar a esfera por uma chave
+- [ ] Trocar o final da fase por uma porta que necessite de X chaves
 
 ## TODO
 
