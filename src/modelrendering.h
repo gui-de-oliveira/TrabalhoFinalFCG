@@ -393,6 +393,9 @@ void LoadShadersFromFiles()
     //Wall Texture
     glUniform1i(glGetUniformLocation(program_id, "TextureImage_Wall"), 9);
     glUniform1i(glGetUniformLocation(program_id, "TextureImage_Wall2"), 10);
+
+    //Drone Texture
+    glUniform1i(glGetUniformLocation(program_id, "DroneTexture"), 11);
     glUseProgram(0);
 }
 

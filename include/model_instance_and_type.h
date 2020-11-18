@@ -23,13 +23,15 @@
 #define LUCINA 7
 #define CORRIDOR2 8
 
-#define FRAMES_REAPER 112 //max = 112
-#define FRAMES_LUCINA_WALKING 30  //max = 30
-#define FRAMES_LUCINA_IDLE 72  //max = 72
-#define FRAMES_LUCINA_LEFT_WALKING 30  //max = 30
-#define FRAMES_LUCINA_DEATH 50  //max = 50
+#define FRAMES_REAPER 1 //max = 112
+#define FRAMES_LUCINA_WALKING 1  //max = 30
+#define FRAMES_LUCINA_IDLE 1  //max = 72
+#define FRAMES_LUCINA_LEFT_WALKING 1  //max = 30
+#define FRAMES_LUCINA_DEATH 1  //max = 50
 
-
+float vectorLength(glm::vec4 v){
+    return sqrt(pow(v.x, 2) + pow(v.y, 2) + pow(v.z, 2));
+}
 class BoundingBox {
     public:
     glm::vec4 min;
@@ -156,6 +158,65 @@ bool doObjectCollidesWithInstancesArray(BoundingBox* obj, std::vector<ModelInsta
     }
     return false;
 }
+
+bool doesRayCollidesWithAnyWall(std::vector<ModelInstance> allInstances, glm::vec4 start, glm::vec4 end)
+{
+    glm::vec4 rayDirection  = end - start;
+    BoundingBox rayBoundingBox = BoundingBox(end, start);
+
+    //Get all instances colliding with the bounding box
+    std::vector<ModelInstance> collidingInstances = {};
+    while(allInstances.size() > 0)
+    {
+        ModelInstance instance = allInstances[allInstances.size() - 1];
+
+        if (doObjectCollidesWithInstance(&rayBoundingBox, &instance)) {
+            collidingInstances.push_back(instance);
+        }
+
+        allInstances.pop_back();
+    }
+    
+    //Search for wall colliding with ray
+    while(collidingInstances.size() > 0)
+    {
+        ModelInstance wall = collidingInstances[collidingInstances.size() - 1];
+        collidingInstances.pop_back();
+
+        std::vector<BoundingBox> boundings = wall.object->boundings;
+        for(int i = 0; i < boundings.size(); i++) {
+            BoundingBox relativeBounding = BoundingBox(boundings[i], wall.position - start);
+
+            //Horizontal line
+            if(relativeBounding.min.z == relativeBounding.max.z) 
+            {
+                float t = relativeBounding.max.z / rayDirection.z;
+                float x = rayDirection.x * t;
+
+                //Intersects with the line segment
+                if (t >= 0 && relativeBounding.min.x <= x && x <= relativeBounding.max.x) 
+                {
+                    return true;
+                }
+            } 
+
+            //Vertical line
+            else 
+            {
+                float t = relativeBounding.max.x / rayDirection.x;
+                float z = rayDirection.z * t;
+
+                //Intersects with the line segment
+                if (t >= 0 && relativeBounding.min.z <= z && z <= relativeBounding.max.z) 
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+};
 
 void drawEnemy(){
     glUniform1i(object_id_uniform, REAPER);
