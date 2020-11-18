@@ -29,6 +29,7 @@
 #include "camera.h"
 #include "model_instance_and_type.h"
 #include "block.h"
+#include "reaper.h"
 
 // Funções abaixo renderizam como texto na janela OpenGL algumas matrizes e
 // outras informações do programa. Definidas após main().
@@ -237,155 +238,8 @@ void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
     g_LastCursorPosY = ypos;
 }
 
-// Dado o tempo de execução, retorna o offset de posição X do inimigo
-float positionXByTime(float time){
-    return sin(time);
-}
-
-float vectorLength(glm::vec4 v){
-    return sqrt(pow(v.x, 2) * pow(v.y, 2) * pow(v.z, 2));
-}
-
 // Checa se é possível mover o personagem na direção mostrada e o move
 void tryToMove(glm::vec4 direction);
-
-glm::vec2 getCubicBezierPoint(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, glm::vec2 p4, float dt){
-    auto interpolate = [=](float n1, float n2 , float perc ) {
-        float diff = n2 - n1;
-        return n1 + ( diff * perc );
-    };
-
-    float xa = interpolate(p1.x, p2.x, dt);
-    float ya = interpolate(p1.y, p2.y, dt);
-    float xb = interpolate(p2.x, p3.x, dt);
-    float yb = interpolate(p2.y, p3.y, dt);
-    float xc = interpolate(p3.x, p4.x, dt);
-    float yc = interpolate(p3.y, p4.y, dt);
-
-    float xm = interpolate(xa, xb, dt);
-    float ym = interpolate(ya, yb, dt);
-    float xn = interpolate(xb, xc, dt);
-    float yn = interpolate(yb, yc, dt);
-
-    float x = interpolate(xm , xn , dt);
-    float y = interpolate(ym , yn , dt);
-
-    return glm::vec2(x, y);
-};
-
-glm::vec4 getPath(float time) {
-    //Transforma valor time em um valor do intervalo entre 0 e maxValue,
-    //repetindo ao chega em maxValue
-    auto repeating = [](float time, float maxValue){
-        float t = floor(time/maxValue);
-        return time - t * maxValue;
-    };
-
-    float height = 1.0;
-    float width = 1.5;
-
-    float dt = repeating(time, 4);
-    float ds = repeating(dt, 1);
-
-    auto p = [=](float x, float y){
-        return glm::vec2(x * width, y * height);
-    };
-
-    glm::vec2 point =
-          dt < 1 ? getCubicBezierPoint(p(1, -1), p(0, -1), p(0, 1), p(1, 1), ds)
-        : dt < 2 ? getCubicBezierPoint(p(1, 1), p(1, 1), p(2, 1), p(2, 1), ds)
-        : dt < 3 ? getCubicBezierPoint(p(2, 1), p(3, 1), p(3, -1), p(2, -1), ds)
-                 : getCubicBezierPoint(p(2, -1), p(2, -1), p(1, -1), p(1, -1), ds);
-
-    return glm::vec4(point.x, 0.0, point.y, 1.0);
-};
-
-float totalTime = 0.0;
-glm::vec4 getEnemyPosition(float delta) {
-    float distance = delta * 1.0;
-
-    glm::vec4 initialPos = getPath(totalTime);
-    glm::vec4 currentPos = initialPos;
-    float totalDistance = 0.0;
-
-    while(totalDistance < distance){
-        totalTime += 0.0001;
-        glm::vec4 dist = getPath(totalTime);
-
-        glm::vec4 diff = dist - currentPos;
-        totalDistance += sqrt(pow(diff.x, 2) + pow(diff.y, 2) + pow(diff.z, 2));
-        currentPos = dist;
-    }
-
-    glm::vec4 diffor = currentPos - initialPos;
-    return diffor;
-};
-
-float calculateAngle(glm::vec2 v1, glm::vec2 v2){
-    float dot = v1.x * v2.x + v1.y * v2.y;
-    float det = v1.x * v2.y - v1.y * v2.x;
-
-    return atan2(det, dot);
-}
-
-bool doesRayCollidesWithAnyWall(std::vector<ModelInstance> allInstances, glm::vec4 start, glm::vec4 end)
-{
-    glm::vec4 rayDirection  = end - start;
-    BoundingBox rayBoundingBox = BoundingBox(end, start);
-
-    //Get all instances colliding with the bounding box
-    std::vector<ModelInstance> collidingInstances = {};
-    while(allInstances.size() > 0)
-    {
-        ModelInstance instance = allInstances[allInstances.size() - 1];
-
-        if (doObjectCollidesWithInstance(&rayBoundingBox, &instance)) {
-            collidingInstances.push_back(instance);
-        }
-
-        allInstances.pop_back();
-    }
-    
-    //Search for wall colliding with ray
-    while(collidingInstances.size() > 0)
-    {
-        ModelInstance wall = collidingInstances[collidingInstances.size() - 1];
-        collidingInstances.pop_back();
-
-        std::vector<BoundingBox> boundings = wall.object->boundings;
-        for(int i = 0; i < boundings.size(); i++) {
-            BoundingBox relativeBounding = BoundingBox(boundings[i], wall.position - start);
-
-            //Horizontal line
-            if(relativeBounding.min.z == relativeBounding.max.z) 
-            {
-                float t = relativeBounding.max.z / rayDirection.z;
-                float x = rayDirection.x * t;
-
-                //Intersects with the line segment
-                if (t >= 0 && relativeBounding.min.x <= x && x <= relativeBounding.max.x) 
-                {
-                    return true;
-                }
-            } 
-
-            //Vertical line
-            else 
-            {
-                float t = relativeBounding.max.x / rayDirection.x;
-                float z = rayDirection.z * t;
-
-                //Intersects with the line segment
-                if (t >= 0 && relativeBounding.min.z <= z && z <= relativeBounding.max.z) 
-                {
-                    return true;
-                }
-            }
-        }
-    }
-
-    return false;
-};
 
 enum PlayerState {
     MOVING_FORWARD,
@@ -399,6 +253,7 @@ PlayerState playerState = IDLE;
 float frameCounter = 0;
 std::string playerModel = "";
 
+
 int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
 {
     glfwSetKeyCallback(window, KeyCallback);
@@ -406,7 +261,6 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
     glfwSetCursorPosCallback(window, CursorPosCallback);
 
     g_PlayerCamera = INITIAL_PLAYER_CAMERA;
-    totalTime = 0.0;
 
     instances =
     {
@@ -431,10 +285,13 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
         (*ptr) = &instances[instances.size() - 1];
     };
 
-    ModelInstance *enemyInstance, *dragonInstance, *endGame;
-    pushToInstances(&enemyInstance, ModelInstance(&Enemy, glm::vec4(3.0, 0.0, 0.0, 1.0), 0.0056));
+    ModelInstance *dragonInstance, *endGame;
     pushToInstances(&dragonInstance, ModelInstance(&Dragon, glm::vec4(0.0, -1.15, 15.0, 1.0), glm::vec3(0.0, PI, 0.0), 13.4));
     pushToInstances(&endGame, ModelInstance(&Sphere, glm::vec4(0.0, 1.0, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0));
+    
+    ModelInstance *enemyInstance;
+    pushToInstances(&enemyInstance, ModelInstance(&Enemy, glm::vec4(3.0, 0.0, 0.0, 1.0), 0.0056));
+    Reaper enemy(enemyInstance, &instances);
 
     bool isGameWon = false;
     bool isGameLost = false;
@@ -461,49 +318,18 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(program_id);
 
-        // Calcula a distância que deve ser percorrida desde o último frame
-        float deltaDistance = positionXByTime(currentTime) - positionXByTime(lastTime);
-
-        glm::vec4 d = (endGame->position - g_PlayerCamera.position);
-        float distance = sqrt(d.x * d.x + d.y * d.y + d.z * d.z);
-
         if(!g_ButtonState.IsCursorDisabled){
-            glm::vec4 direction = getEnemyPosition(delta);
-            enemyInstance->position += direction;
-            glm::vec2 enemyDirectionTopDown = glm::vec2(direction.x, direction.z);
-
-            float angle = calculateAngle(enemyDirectionTopDown, glm::vec2(1.0, 0.0));
-
-            enemyInstance->rotation.z = -angle;
-
             auto offset = [=](float speed, float amp){ return (sin(currentTime * speed) - sin(lastTime * speed)) * amp; };
 
-            dragonInstance->position.y += deltaDistance;
-
-            if(!isGameWon){
-                endGame->scale *= 1 + offset(2.5, 0.3);
-            }
-
-            if(!isGameWon && distance < 0.5){
-                cout << "You won!!!";
+            endGame->scale *= 1 + offset(2.5, 0.3);
+            if(vectorLength(endGame->position - g_PlayerCamera.position) < 0.5){
                 endGame->scale = glm::vec3(0.0, 0.0, 0.0);
                 isGameWon = true;
             }
 
-            glm::vec4 relativeEnemyPosition = g_PlayerCamera.position - enemyInstance->position;
-           
-            if(vectorLength(relativeEnemyPosition) < 50.0) {
+            dragonInstance->position.y += offset(1.0, 1.0);
 
-                glm::vec2 relEnemyPositionTopDown = glm::vec2(relativeEnemyPosition.x, relativeEnemyPosition.z);
-                glm::vec2 dirction = glm::vec2(direction.x, direction.z);
-                float playerAngle = fabs(calculateAngle(dirction, relEnemyPositionTopDown)) * (180.0/PI);
-
-                if(playerAngle < 45.0){
-                    //check for walls on the way
-                    bool doesRayCollide = doesRayCollidesWithAnyWall(instances, g_PlayerCamera.position, enemyInstance->position);
-                    isGameLost = !doesRayCollide;
-                }
-            }
+            enemy.applyEnemyBehaviour(delta, &isGameLost, g_PlayerCamera.position);
 
             // Movimentamos o personagem se alguma tecla estiver pressionada
             float speed = 2.0f * (g_ButtonState.Shift ? 10.0 : 1.0) * (g_ButtonState.Ctrl ? 0.1 : 1.0);
@@ -512,8 +338,6 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
             if(g_ButtonState.MovingBackward) tryToMove(-1.0f * speed * delta * g_PlayerCamera.getRelativeForward());
             if(g_ButtonState.MovingLeft) tryToMove(speed * delta * g_PlayerCamera.getRelativeLeft());
             if(g_ButtonState.MovingRight) tryToMove(-1.0f * speed * delta * g_PlayerCamera.getRelativeLeft());
-
-           
 
             if(g_ButtonState.MovingForward) {
                 frameCounter += delta;    

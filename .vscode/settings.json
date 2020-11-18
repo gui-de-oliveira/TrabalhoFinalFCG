@@ -60,6 +60,9 @@
         "*.rh": "cpp",
         "atomic": "cpp",
         "compare": "cpp",
-        "iterator": "cpp"
+        "iterator": "cpp",
+        "chrono": "cpp",
+        "ratio": "cpp",
+        "thread": "cpp"
     }
 }

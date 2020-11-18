@@ -42,6 +42,37 @@ glm::mat4 Matrix(
     );
 }
 
+glm::vec2 getCubicBezierPoint(glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, glm::vec2 p4, float dt){
+    auto interpolate = [=](float n1, float n2 , float perc ) {
+        float diff = n2 - n1;
+        return n1 + ( diff * perc );
+    };
+
+    float xa = interpolate(p1.x, p2.x, dt);
+    float ya = interpolate(p1.y, p2.y, dt);
+    float xb = interpolate(p2.x, p3.x, dt);
+    float yb = interpolate(p2.y, p3.y, dt);
+    float xc = interpolate(p3.x, p4.x, dt);
+    float yc = interpolate(p3.y, p4.y, dt);
+
+    float xm = interpolate(xa, xb, dt);
+    float ym = interpolate(ya, yb, dt);
+    float xn = interpolate(xb, xc, dt);
+    float yn = interpolate(yb, yc, dt);
+
+    float x = interpolate(xm , xn , dt);
+    float y = interpolate(ym , yn , dt);
+
+    return glm::vec2(x, y);
+};
+
+float calculateAngle(glm::vec2 v1, glm::vec2 v2){
+    float dot = v1.x * v2.x + v1.y * v2.y;
+    float det = v1.x * v2.y - v1.y * v2.x;
+
+    return atan2(det, dot);
+}
+
 // Matriz identidade.
 glm::mat4 Matrix_Identity()
 {
