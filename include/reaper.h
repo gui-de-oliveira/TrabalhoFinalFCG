@@ -12,15 +12,22 @@
 
 #include "model_instance_and_type.h"
 
+
+enum MovementPattern {
+    BEZIER_CURVE,
+    REPEATING_LINE
+};
 class Reaper {
     public:
     float totalTime = 0.0;
     ModelInstance* instance;
     std::vector<ModelInstance>* instances;
+    MovementPattern movementPattern = BEZIER_CURVE;
     
-    Reaper(ModelInstance* _instance, std::vector<ModelInstance>* _instances, float _timeOffset = 0.0) {
+    Reaper(ModelInstance* _instance, std::vector<ModelInstance>* _instances, float _timeOffset = 0.0, MovementPattern _movementPattern = BEZIER_CURVE) {
         instance = _instance;
         instances = _instances;
+        movementPattern = _movementPattern;
 
         if(_timeOffset != 0.0) {
             glm::vec4 displacement = getPositionDisplacement(_timeOffset);
@@ -32,7 +39,21 @@ class Reaper {
         }
     };
 
-    glm::vec4 getReaperPath(float time) {
+    glm::vec4 getReaperPath(float time)
+    {
+        switch(movementPattern)
+        {
+            case BEZIER_CURVE:
+                return getBezierCurvePath(time);
+
+            case REPEATING_LINE:
+                return getLinePath(time);
+            
+            default:
+                return getBezierCurvePath(time);
+        }
+    }
+    glm::vec4 getBezierCurvePath(float time) {
         //Transforma valor time em um valor do intervalo entre 0 e maxValue,
         //repetindo ao chega em maxValue
         auto repeating = [](float time, float maxValue){
@@ -58,6 +79,22 @@ class Reaper {
 
         return glm::vec4(point.x, 0.0, point.y, 1.0);
     };
+
+        glm::vec4 getLinePath(float time) {
+        //Transforma valor time em um valor do intervalo entre 0 e maxValue,
+        //repetindo ao chega em maxValue
+        auto repeating = [](float time, float maxValue){
+            float t = floor(time/maxValue);
+            return time - t * maxValue;
+        };
+
+        float maxValue = 10.0;
+
+        float dt = repeating(time, maxValue);
+
+        return glm::vec4(0.0, 0.0, -dt, 1.0);
+    };
+
 
     glm::vec4 getPositionDisplacement(float delta) {
         float distance = delta * 1.0;
@@ -96,7 +133,7 @@ class Reaper {
             if(playerAngle < 45.0){
                 //check for walls on the way
                 bool doesRayCollide = doesRayCollidesWithAnyWall(*instances, playerPosition, instance->position);
-                (*isGameLost) = !doesRayCollide;
+                //(*isGameLost) = !doesRayCollide;
             }
         }
     }

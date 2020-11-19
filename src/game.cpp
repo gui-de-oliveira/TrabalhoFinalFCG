@@ -286,17 +286,45 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
     };
 
     ModelInstance *dragonInstance, *endGame;
-    pushToInstances(&dragonInstance, ModelInstance(&Dragon, glm::vec4(0.0, -1.15, 15.0, 1.0), glm::vec3(0.0, PI, 0.0), 13.4));
-    pushToInstances(&endGame, ModelInstance(&Sphere, glm::vec4(0.0, 1.0, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0));
+    pushToInstances(&dragonInstance, ModelInstance(&Dragon, glm::vec4(-94.0, -1.15, 3.6, 1.0), glm::vec3(0.0, HALF_PI, 0.0), 13.4));
+    pushToInstances(&endGame, ModelInstance(&Sphere, glm::vec4(-75.0, 1.0, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0));
+
+    struct ReaperProps {
+        glm::vec4 position;
+        float timeOffset = 0.0;
+        MovementPattern MovementPattern = BEZIER_CURVE;
+    };
+
+    auto createReaperProps=  [](glm::vec3 position, float timeOffset = 0.0, MovementPattern MovementPattern = BEZIER_CURVE){
+        ReaperProps props;
+        props.position = glm::vec4(position.x, position.y, position.z, 1.0);
+        props.timeOffset = timeOffset;
+        props.MovementPattern = MovementPattern;
+
+        return props;
+    };
+
+    std::vector<ReaperProps> reapersProps = {
+        //First part
+        createReaperProps(glm::vec3(-8.5, 0.0, -6.0)),
+        createReaperProps(glm::vec3(-8.5, 0.0, -6.0), 10.0),
+
+        //Corridor
+        createReaperProps(glm::vec3(-23.7, 0.0, 7.5), 3.0, REPEATING_LINE),
+        createReaperProps(glm::vec3(-25.7, 0.0, 7.5), 1.0, REPEATING_LINE),
+        createReaperProps(glm::vec3(-27.7, 0.0, 7.5), 2.0, REPEATING_LINE),
+        createReaperProps(glm::vec3(-29.7, 0.0, 7.5), 1.0, REPEATING_LINE),
+        createReaperProps(glm::vec3(-31.7, 0.0, 7.5), 6.0, REPEATING_LINE),
+    };
+
+    std::vector<Reaper> reapers = {};
+    for(int i = 0; i < reapersProps.size(); i++){
+        ModelInstance *instance;
+        pushToInstances(&instance, ModelInstance(&Enemy, reapersProps[i].position, 0.0056));
+        Reaper reaper(instance, &instances, reapersProps[i].timeOffset, reapersProps[i].MovementPattern);
+        reapers.push_back(reaper);
+    }
     
-    ModelInstance *enemyInstance;
-    pushToInstances(&enemyInstance, ModelInstance(&Enemy, glm::vec4(-8.5, 0.0, -6.0, 1.0), 0.0056));
-    Reaper enemy(enemyInstance, &instances);
-
-    ModelInstance *enemyInstance2;
-    pushToInstances(&enemyInstance2, ModelInstance(&Enemy, glm::vec4(-8.5, 0.0, -6.0, 1.0), 0.0056));
-    Reaper enemy2(enemyInstance2, &instances, 10.0);
-
     bool isGameLost = false;
     bool isGameWon = false;
 
@@ -333,8 +361,9 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
 
             dragonInstance->position.y += offset(1.0, 1.0);
 
-            enemy.applyEnemyBehaviour(delta, &isGameLost, g_PlayerCamera.position);
-            enemy2.applyEnemyBehaviour(delta, &isGameLost, g_PlayerCamera.position);
+            for(int i = 0; i < reapers.size(); i++){
+                reapers[i].applyEnemyBehaviour(delta, &isGameLost, g_PlayerCamera.position);
+            }
 
             // Movimentamos o personagem se alguma tecla estiver pressionada
             float speed = 2.0f * (g_ButtonState.Shift ? 10.0 : 1.0) * (g_ButtonState.Ctrl ? 0.1 : 1.0);
