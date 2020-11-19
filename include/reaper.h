@@ -15,7 +15,8 @@
 
 enum MovementPattern {
     BEZIER_CURVE,
-    REPEATING_LINE
+    REPEATING_LINE,
+    STOPPED
 };
 class Reaper {
     public:
@@ -48,6 +49,9 @@ class Reaper {
 
             case REPEATING_LINE:
                 return getLinePath(time);
+            
+            case STOPPED:
+                return glm::vec4(0.0, 0.0, 0.0, 1.0);
             
             default:
                 return getBezierCurvePath(time);
@@ -97,6 +101,10 @@ class Reaper {
 
 
     glm::vec4 getPositionDisplacement(float delta) {
+        if (movementPattern == STOPPED) {
+            return glm::vec4(0.0, 0.0, 0.0, 1.0);
+        } 
+
         float distance = delta * 1.0;
 
         glm::vec4 initialPos = getReaperPath(totalTime);
@@ -113,6 +121,10 @@ class Reaper {
         }
 
         glm::vec4 diffor = currentPos - initialPos;
+
+        float angle = calculateAngle(glm::vec2(diffor.x, diffor.z), glm::vec2(1.0, 0.0));
+        instance->rotation.z = -angle;
+
         return diffor;
     };
 
@@ -122,18 +134,17 @@ class Reaper {
         instance->position += displacement;
         glm::vec2 displacement2D = glm::vec2(displacement.x, displacement.z);
 
-        float angle = calculateAngle(displacement2D, glm::vec2(1.0, 0.0));
-        instance->rotation.z = -angle;
-
         glm::vec4 playerDirection = playerPosition - instance->position;
         if(vectorLength(playerDirection) < 50.0) {
             glm::vec2 playerDirection2D = glm::vec2(playerDirection.x, playerDirection.z);
             float playerAngle = fabs(calculateAngle(displacement2D, playerDirection2D)) * (180.0/PI);
 
-            if(playerAngle < 45.0){
+            if(playerAngle < 80.0){
                 //check for walls on the way
                 bool doesRayCollide = doesRayCollidesWithAnyWall(*instances, playerPosition, instance->position);
-                //(*isGameLost) = !doesRayCollide;
+                if(!doesRayCollide){
+                    (*isGameLost) = true;
+                }
             }
         }
     }

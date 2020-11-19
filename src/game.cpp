@@ -291,15 +291,17 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
 
     struct ReaperProps {
         glm::vec4 position;
+        glm::vec4 rotation;
         float timeOffset = 0.0;
         MovementPattern MovementPattern = BEZIER_CURVE;
     };
 
-    auto createReaperProps=  [](glm::vec3 position, float timeOffset = 0.0, MovementPattern MovementPattern = BEZIER_CURVE){
+    auto createReaperProps=  [](glm::vec3 position, float timeOffset = 0.0, MovementPattern MovementPattern = BEZIER_CURVE, glm::vec4 rotation = glm::vec4(0.0, 0.0, 0.0, 1.0)){
         ReaperProps props;
         props.position = glm::vec4(position.x, position.y, position.z, 1.0);
         props.timeOffset = timeOffset;
         props.MovementPattern = MovementPattern;
+        props.rotation = rotation;
 
         return props;
     };
@@ -315,12 +317,18 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
         createReaperProps(glm::vec3(-27.7, 0.0, 7.5), 2.0, REPEATING_LINE),
         createReaperProps(glm::vec3(-29.7, 0.0, 7.5), 1.0, REPEATING_LINE),
         createReaperProps(glm::vec3(-31.7, 0.0, 7.5), 6.0, REPEATING_LINE),
+        
+        //Maze
+        createReaperProps(glm::vec3(-55.87, 0.0, 2.03), 0.0, STOPPED, glm::vec4(0.0, 0.0, 3.655, 1.0)),
+        createReaperProps(glm::vec3(-51.93, 0.0, 2.16), 0.0, STOPPED, glm::vec4(0.0, 0.0, -4.31, 1.0)),
+        createReaperProps(glm::vec3(-41.92, 0.0, 10.28), 0.0, STOPPED, glm::vec4(0.0, 0.0, -2.30, 1.0)),
+        createReaperProps(glm::vec3(-50.14, 0.0, 6.07), 0.0, STOPPED, glm::vec4(0.0, 0.0, 0.82, 1.0)),
     };
 
     std::vector<Reaper> reapers = {};
     for(int i = 0; i < reapersProps.size(); i++){
         ModelInstance *instance;
-        pushToInstances(&instance, ModelInstance(&Enemy, reapersProps[i].position, 0.0056));
+        pushToInstances(&instance, ModelInstance(&Enemy, reapersProps[i].position, reapersProps[i].rotation, 0.0056));
         Reaper reaper(instance, &instances, reapersProps[i].timeOffset, reapersProps[i].MovementPattern);
         reapers.push_back(reaper);
     }
