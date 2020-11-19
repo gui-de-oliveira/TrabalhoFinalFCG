@@ -275,6 +275,7 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
 
     g_PlayerCamera = INITIAL_PLAYER_CAMERA;
     g_FixedCamera = INITIAL_CAMERA;
+    g_ShouldPlayerRotate = true;
 
     instances = {};
     spawnMaze(&instances);

@@ -23,11 +23,11 @@
 #define LUCINA 7
 #define CORRIDOR2 8
 
-#define FRAMES_REAPER 1 //max = 112
-#define FRAMES_LUCINA_WALKING 1  //max = 30
-#define FRAMES_LUCINA_IDLE 1  //max = 72
-#define FRAMES_LUCINA_LEFT_WALKING 1  //max = 30
-#define FRAMES_LUCINA_DEATH 1  //max = 50
+#define FRAMES_REAPER 112 //max = 112
+#define FRAMES_LUCINA_WALKING 30  //max = 30
+#define FRAMES_LUCINA_IDLE 72  //max = 72
+#define FRAMES_LUCINA_LEFT_WALKING 30  //max = 30
+#define FRAMES_LUCINA_DEATH 50  //max = 50
 
 float vectorLength(glm::vec4 v){
     return sqrt(pow(v.x, 2) + pow(v.y, 2) + pow(v.z, 2));
