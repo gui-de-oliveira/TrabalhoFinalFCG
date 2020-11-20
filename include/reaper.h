@@ -135,11 +135,11 @@ class Reaper {
         glm::vec2 displacement2D = glm::vec2(displacement.x, displacement.z);
 
         glm::vec4 playerDirection = playerPosition - instance->position;
-        if(vectorLength(playerDirection) < 50.0) {
+        if(vectorLength(playerDirection) < 20.0) {
             glm::vec2 playerDirection2D = glm::vec2(playerDirection.x, playerDirection.z);
             float playerAngle = fabs(calculateAngle(displacement2D, playerDirection2D)) * (180.0/PI);
 
-            if(playerAngle < 80.0){
+            if(playerAngle < 45.0){
                 //check for walls on the way
                 bool doesRayCollide = doesRayCollidesWithAnyWall(*instances, playerPosition, instance->position);
                 if(!doesRayCollide){

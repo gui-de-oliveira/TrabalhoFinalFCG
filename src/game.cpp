@@ -94,7 +94,7 @@ struct ButtonStates {
 
     bool R = false;
 
-    bool IsCursorDisabled = false;
+    bool IsCursorEnable = false;
 
     ActionMode InputMode = PLAY;
 } g_ButtonState;
@@ -115,9 +115,9 @@ void KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mod)
 
     // Se o usuário pressionar a tecla ESC, mostramos o mouse.
     if (IsButtonPressed(GLFW_KEY_ESCAPE)){
-        g_ButtonState.IsCursorDisabled = !g_ButtonState.IsCursorDisabled;
+        g_ButtonState.IsCursorEnable = !g_ButtonState.IsCursorEnable;
 
-        if(g_ButtonState.IsCursorDisabled) glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+        if(g_ButtonState.IsCursorEnable) glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
         else glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     }
 
@@ -224,7 +224,7 @@ void cursorPosCallbackOnGameLost(GLFWwindow* window, double xpos, double ypos)
 
 void CursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 {
-    if(!g_ButtonState.IsCursorDisabled){
+    if(!g_ButtonState.IsCursorEnable){
         // Deslocamento do cursor do mouse em x e y de coordenadas de tela!
         float dx = xpos - g_LastCursorPosX;
         float dy = ypos - g_LastCursorPosY;
@@ -359,7 +359,7 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(program_id);
 
-        if(!g_ButtonState.IsCursorDisabled){
+        if(!g_ButtonState.IsCursorEnable){
             auto offset = [=](float speed, float amp){ return (sin(currentTime * speed) - sin(lastTime * speed)) * amp; };
 
             endGame->scale *= 1 + offset(2.5, 0.3);
@@ -469,6 +469,14 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
         glViewport(0, 0, (*width), (*height));
 
         TextRendering_ShowFramesPerSecond(window);
+
+        if(g_ButtonState.IsCursorEnable){
+            float lineheight = TextRendering_LineHeight(window);
+            TextRendering_PrintString(window, "Comandos: ", -0.2f, 0.5f, 2.0f);
+            TextRendering_PrintString(window, "WASD -> Mover Player", -0.2f, 0.5f - lineheight*2, 2.0f);
+            TextRendering_PrintString(window, "Setas -> Mover Drone ", -0.2f, 0.5f - lineheight*4, 2.0f);
+            TextRendering_PrintString(window, "ESC -> Pausar o jogo ", -0.2f, 0.5f - lineheight*6, 2.0f);
+        }
 
         if (g_ButtonState.InputMode == PLAY) {
             debugStream << "PlayerCamera Stats"<< endl;
