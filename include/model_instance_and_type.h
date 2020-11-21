@@ -13,7 +13,7 @@
 #define PI 3.1415
 #define HALF_PI PI / 2.0
 
-#define SPHERE 0
+#define CRYSTAL 0
 #define BUNNY  1
 #define PLANE  2
 #define LINK  3
@@ -228,9 +228,9 @@ void drawEnemy(){
     DrawVirtualObject(name.c_str());
 }
 
-void drawSphere(){
-    glUniform1i(object_id_uniform, LINK);
-    DrawVirtualObject("Sphere");
+void drawCrystal(){
+    glUniform1i(object_id_uniform, CRYSTAL);
+    DrawVirtualObject("crystal");
 }
 
 void drawDragon(){
@@ -249,7 +249,7 @@ void drawDragon(){
 }
 
 ModelType Enemy = ModelType(glm::vec3(1.0, 1.0, 1.0), glm::vec3(HALF_PI, 0.0, HALF_PI + PI), drawEnemy);
-ModelType Sphere = ModelType(glm::vec3(1.0, 1.0, 1.0), drawSphere);
+ModelType Crystal = ModelType(glm::vec3(1.0, 1.0, 1.0), drawCrystal);
 ModelType Dragon = ModelType(glm::vec3(0.01, 0.01, 0.01), drawDragon);
 
 #endif // _MODEL_H

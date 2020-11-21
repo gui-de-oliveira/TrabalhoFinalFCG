@@ -98,6 +98,9 @@ int main(int argc, char* argv[])
 
     //Drone texture
     "drone.png",
+
+    //Crystal texture
+    "crystal.png",
     };
 
     for(int i = 0; i < texturesList.size(); i++)
@@ -134,11 +137,11 @@ int main(int argc, char* argv[])
     "corridor.obj",
     "corridor2.obj",
     "Block.obj",
-    "sphere.obj",
     "dragon.obj",
     "reaper.obj",
     "lucina.obj",
     "drone.obj",
+    "crystal.obj",
     };
 
     for(int i = 0; i < modelsList.size(); i++)

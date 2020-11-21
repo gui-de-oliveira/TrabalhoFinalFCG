@@ -29,7 +29,7 @@ uniform mat4 view;
 uniform mat4 projection;
 
 // Identificador que define qual objeto está sendo desenhado no momento
-#define SPHERE 0
+#define CRYSTAL 0
 #define BUNNY  1
 #define PLANE  2
 #define LINK  3
@@ -55,6 +55,7 @@ vec3 colorPhong;
 uniform sampler2D TextureImage_Link;
 uniform sampler2D TextureImage_Wall;
 uniform sampler2D TextureImage_Wall2;
+uniform sampler2D TextureImage_Crystal;
 
 uniform sampler2D DragonTexture_0;
 uniform sampler2D DragonTexture_1;
@@ -113,7 +114,7 @@ void phongColors (){
     // vec3 Ks; // Refletancia especular
     // vec3 Ka; // Refletancia ambiente
     // float q; // Expoente especular para o modelo de iluminacao de Phong
-    vec3 Kd = vec3(0.1686, 0.6235, 0.9255);
+    vec3 Kd = vec3(0.6196, 0.0275, 0.8549);
     vec3 Ks = vec3(0.8,0.8,0.8);
     vec3 Ka = Kd/2;
     float q = 32.0;
@@ -211,19 +212,21 @@ void main()
 
         TextureColor = texture(TextureImage_Wall2, vec2(U,V)).rgb;
     }
+    else if(object_id == CRYSTAL){
+        noTexture = true;
+        // U = texcoords.x;
+        // V = texcoords.y;
+
+        // TextureColor = texture(TextureImage_Crystal, vec2(U,V)).rgb;
+    }
 
     else {
         noTexture = true;
     }
 
-    
-    // if(useGourand){
-    //     lambert = lambertGourand;
-    //     color3 = colorGourand;
-    // }
-    // else{
-        phongColors();
-        color3 = colorPhong;
+    phongColors();
+    color3 = colorPhong;
+
     if(noTexture){
         color = vec4(color3.xyz, 1.0);
     }

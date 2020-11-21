@@ -43,7 +43,7 @@ bool collisionDetect (Camera g_PlayerCamera);
 
 #define BLOCK_SIZE 2
 
-#define SPHERE 0
+#define CRYSTAL 0
 #define BUNNY  1
 #define PLANE  2
 #define LINK  3
@@ -288,7 +288,7 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
 
     ModelInstance *dragonInstance, *endGame;
     pushToInstances(&dragonInstance, ModelInstance(&Dragon, glm::vec4(-94.0, -1.15, 3.6, 1.0), glm::vec3(0.0, HALF_PI, 0.0), 13.4));
-    pushToInstances(&endGame, ModelInstance(&Sphere, glm::vec4(-75.0, 1.0, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 3.0));
+    pushToInstances(&endGame, ModelInstance(&Crystal, glm::vec4(-75.0, 0.6, 4.0, 1.0), glm::vec3(0.0, 0.0, 0.0), 0.2));
 
     struct ReaperProps {
         glm::vec4 position;
@@ -363,7 +363,9 @@ int Game(GLFWwindow* window, float* width, float* height, float* screenRatio )
             auto offset = [=](float speed, float amp){ return (sin(currentTime * speed) - sin(lastTime * speed)) * amp; };
 
             endGame->scale *= 1 + offset(2.5, 0.3);
-            if(vectorLength(endGame->position - g_PlayerCamera.position) < 0.5){
+            endGame->rotation.y += 0.03;
+
+            if(vectorLength(endGame->position - g_PlayerCamera.position) < 1.0){
                 endGame->scale = glm::vec3(0.0, 0.0, 0.0);
                 isGameWon = true;
             }

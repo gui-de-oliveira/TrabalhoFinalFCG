@@ -396,6 +396,9 @@ void LoadShadersFromFiles()
 
     //Drone Texture
     glUniform1i(glGetUniformLocation(program_id, "DroneTexture"), 11);
+
+    //Crystal Texture
+    glUniform1i(glGetUniformLocation(program_id, "TextureImage_Crystal"), 12);
     glUseProgram(0);
 }
 

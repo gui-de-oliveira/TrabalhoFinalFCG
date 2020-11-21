@@ -2,7 +2,7 @@
 ## TODO de "gameplay"
 
 - [ ] Criar uma condicional para utilizar tanto Gourand quanto Phong
-- [ ] Criar um mapa maior
+- [x] Criar um mapa maior
 - [ ] Usar mais de uma câmera
 - [ ] Fazer o Guarda parar quando estiver na visão da câmera
 - [ ] Trocar a esfera por uma chave
